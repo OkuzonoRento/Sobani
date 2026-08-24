@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>つなぐる</title>
+  
+  <!-- CSSライブラリのリセット -->
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- 3Dを描画するためのThree.jsライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    /* ==========================================
+       1. ヘッダーエリア
+       - 画面上部に固定（sticky）
+       - 背景は半透明＋すりガラス効果（backdrop-filter）
+    =========================================== */
+    .site-header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 左側：ロゴアイコン ＆ ブランド名 */
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background-color: #e11d48; /* アクセントの赤 */
+      color: #ffffff;            /* 文字：白 */
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #0f172a;
+    }
+
+    /* 中央：主要ナビゲーション（スマホ表示時は非表示） */
+    .header-nav {
+      display: flex;
+      gap: 32px;
+    }
+
+    .nav-link {
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: #e11d48;
+    }
+
+    @media (max-width: 640px) {
+      .header-nav {
+        display: none;
+      }
+    }
+
+    /* 右側：メニューボタンとドロップダウン */
+    .menu-container {
+      position: relative;
+    }
+
+    .menu-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background-color: #fff1f2;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .menu-button:hover {
+      background-color: #ffe4e6;
+    }
+
+    .menu-button svg {
+      width: 20px;
+      height: 20px;
+      stroke: #e11d48;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 200px;
+      background-color: #ffffff;
+      border: 1px solid #ffe4e6;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.08);
+      padding: 8px 0;
+      z-index: 110;
+      flex-direction: column;
+    }
+
+    .dropdown-menu.is-active {
+      display: flex;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #334155;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background-color: #fff1f2;
+      color: #e11d48;
+    }
+
+    /* X投稿用のアクションリンク（強調表示） */
+    .dropdown-item-action {
+      font-weight: bold;
+      color: #e11d48;
+      border-bottom: 1px solid #ffe4e6;
+      margin-bottom: 4px;
+      padding-bottom: 12px;
+    }
+
+    .dropdown-item-action:hover {
+      background-color: #ffe4e6;
+    }
+
+    /* ==========================================
+       2. 3Dマップセクション（背景：極薄・透明感のある海）
+       - 上から下（180deg）へ変化する非常に淡いアクアトーン
+    =========================================== */
+    .map-section {
+      position: relative;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      height: 520px;
+      /* 上（白に近い水色）から下（極淡いアクアブルー）への上〜下グラデーション */
+      background: linear-gradient(180deg, #f8fafc 0%, #f0fdfa 40%, #e0f2fe 100%);
+      border-top: 1px solid #e0f2fe;
+      border-bottom: 1px solid #bae6fd;
+      overflow: hidden;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .map-section {
+        height: 420px;
+      }
+    }
+
+    #map-canvas-container {
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* 左上オーバーレイ：支援先変更用ドロップダウン */
+    .region-select-wrapper {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #fecdd3;
+      box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.08);
+    }
+
+    .region-select {
+      background: #ffffff;
+      border: 1px solid #fda4af;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #e11d48;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* 右下オーバーレイ：メッセージカード（鶴カウント表示なし） */
+    .message-card-overlay {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
+      width: calc(100% - 32px);
+      max-width: 320px;
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid #fecdd3;
+      box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.12);
+      /* フェード切替のアニメーション設定 */
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* メッセージ切り替え時にCSSで透明化するクラス */
+    .message-card-overlay.is-fading {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #fff1f2;
+    }
+
+    .card-location {
+      font-size: 12px;
+      font-weight: bold;
+      color: #e11d48;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       1. ヘッダーエリア
+  =========================================== -->
+  <header class="site-header">
+    <a href="#" class="logo-area">
+      <div class="logo-icon">折鶴</div>
+      <span class="logo-text">つなぐる</span>
+    </a>
+    <nav class="header-nav">
+      <a href="#" class="nav-link">つなぐるについて</a>
+      <a href="#" class="nav-link">応援の仕組み</a>
+      <a href="#" class="nav-link">支援実績</a>
+    </nav>
+    <div class="menu-container">
+      <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <!-- X投稿リンク（選択中の被災地ハッシュタグを動的に挿入） -->
+        <a href="#" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="dropdown-item dropdown-item-action" 
+           id="send-message-link">
+          💬 メッセージを送る
+        </a>
+        <a href="#" class="dropdown-item">マイページ</a>
+        <a href="#" class="dropdown-item">お知らせ</a>
+        <a href="#" class="dropdown-item">お問い合わせ</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       2. 3D日本地図 ＆ メッセージ表示セクション
+  =========================================== -->
+  <section id="section-3d-map" class="map-section">
+    
+    <!-- 左上：支援先切替ドロップダウン -->
+    <div class="region-select-wrapper">
+      <select id="region-select" class="region-select">
+        <option value="ishikawa">石川県</option>
+        <option value="kumamoto">熊本県</option>
+      </select>
+    </div>
+
+    <!-- 3Dマップの描画用キャンバスコンテナ -->
+    <div id="map-canvas-container"></div>
+
+    <!-- 右下：メッセージカード -->
+    <div class="message-card-overlay" id="message-card">
+      <div class="card-header">
+        <div class="card-location">
+          📍 <span id="msg-location">東京都からのメッセージ</span>
+        </div>
+      </div>
+      <p class="card-text" id="msg-text">
+        「一日も早い復興と、皆様の安全を心よりお祈り申し上げます。みんなで応援しています！」
+      </p>
+    </div>
+
+  </section>
+
+  <!-- ==========================================
+       3. JavaScript 制御スクリプト
+  =========================================== -->
+  <script>
+    /* ------------------------------------------
+       ① ヘッダーのドロップダウンメニュー制御
+    ------------------------------------------- */
+    const menuBtn = document.getElementById('menu-btn');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('is-active');
+    });
+    document.addEventListener('click', () => dropdownMenu.classList.remove('is-active'));
+
+
+    /* ------------------------------------------
+       ② X（Twitter）投稿リンクの動的更新処理
+    ------------------------------------------- */
+    const sendMsgLink = document.getElementById('send-message-link');
+
+    function updateXShareLink(targetKey) {
+      const targetNames = {
+        ishikawa: "石川県",
+        kumamoto: "熊本県"
+      };
+      
+      const targetName = targetNames[targetKey] || "被災地";
+      const hashtags = `つなぐる,${targetName}応援`;
+      const text = encodeURIComponent(`【${targetName}へ応援メッセージを送ろう】\n`);
+      
+      // X投稿用Intent URLをセット
+      sendMsgLink.href = `https://x.com/intent/tweet?text=${text}&hashtags=${hashtags}`;
+    }
+
+
+    /* ------------------------------------------
+       ③ 支援先（目的地）ごとのメッセージデータ
+    ------------------------------------------- */
+    const messageDataByTarget = {
+      // 石川県が選択されている場合
+      ishikawa: [
+        { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「一日も早い復興と、皆様の安全を心よりお祈り申し上げます。みんなで応援しています！」" },
+        { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「少しでも力になれれば幸いです。現地で頑張る皆様に届きますように！」" },
+        { sourceId: "Hokkaido", location: "北海道からのメッセージ", text: "「北の大地から能登へ。一日も早い復興を心より応援しています！」" },
+        { sourceId: "Fukuoka",  location: "福岡県からのメッセージ",   text: "「九州からも温かい気持ちを送ります。一歩ずつ前へ進んでいきましょう。」" }
+      ],
+      // 熊本県が選択されている場合
+      kumamoto: [
+        { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「熊本の皆様へ、温かいご支援の輪が広がりますように。」" },
+        { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「関西から元気を送ります！皆様の笑顔が一日も早く戻りますように。」" },
+        { sourceId: "Hokkaido", location: "北海道からのメッセージ", text: "「遠く離れていますが、熊本の皆様の力強い復興をずっと見守っています。」" },
+        { sourceId: "Fukuoka",  location: "福岡県からのメッセージ",   text: "「お隣の福岡からいつも応援しています。一緒に頑張りましょう！」" }
+      ]
+    };
+
+    // 現在選択されている支援先
+    let currentTargetKey = 'ishikawa';
+    let currentMsgIndex = 0;
+
+    const cardEl = document.getElementById('message-card');
+    const locEl = document.getElementById('msg-location');
+    const textEl = document.getElementById('msg-text');
+
+    // 初期状態のXリンク設定
+    updateXShareLink(currentTargetKey);
+
+    // メッセージのフェード切替関数
+    function updateMessageDisplay(data) {
+      cardEl.classList.add('is-fading');
+      setTimeout(() => {
+        locEl.textContent = data.location;
+        textEl.textContent = data.text;
+        cardEl.classList.remove('is-fading');
+      }, 300);
+    }
+
+    // 10秒ごとの自動切替タイマー
+    let autoSwitchTimer = setInterval(() => {
+      const currentList = messageDataByTarget[currentTargetKey];
+      currentMsgIndex = (currentMsgIndex + 1) % currentList.length;
+      updateMessageDisplay(currentList[currentMsgIndex]);
+    }, 10000);
+
+
+    /* ------------------------------------------
+       ④ Three.js 3D日本地図 ＆ 描画処理
+    ------------------------------------------- */
+    const container = document.getElementById('map-canvas-container');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 8, 11);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // ライティング設定
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    dirLight.position.set(5, 10, 7);
+    scene.add(dirLight);
+
+    // 日本地図（純白）
+    const mapGroup = new THREE.Group();
+    const mapBase = new THREE.Mesh(
+      new THREE.BoxGeometry(7.5, 0.2, 4.5),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 })
+    );
+    mapGroup.add(mapBase);
+
+    // 支援対象（赤いメッシュ）
+    const targetRegion = new THREE.Mesh(
+      new THREE.BoxGeometry(0.9, 0.4, 0.9),
+      new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1 })
+    );
+
+    const targetPositions = {
+      ishikawa: new THREE.Vector3(-0.4, 0.2, -0.2),
+      kumamoto: new THREE.Vector3(-2.2, 0.2, 1.2)
+    };
+
+    targetRegion.position.copy(targetPositions.ishikawa);
+    mapGroup.add(targetRegion);
+    scene.add(mapGroup);
+
+    // 発信地リスト
+    const nationalSources = [
+      { id: "Hokkaido", name: "北海道", pos: new THREE.Vector3(2.5, 0.1, -1.5) },
+      { id: "Tokyo",    name: "東京都", pos: new THREE.Vector3(1.2, 0.1, 0.4) },
+      { id: "Osaka",    name: "大阪府", pos: new THREE.Vector3(0.1, 0.1, 0.5) },
+      { id: "Fukuoka",  name: "福岡県", pos: new THREE.Vector3(-2.0, 0.1, 1.0) }
+    ];
+
+    let particles = [];
+    let lineGroup = new THREE.Group();
+    scene.add(lineGroup);
+
+    let interactiveObjects = [];
+
+    // 放物線生成関数
+    function createArcRoutes() {
+      while(lineGroup.children.length > 0) { lineGroup.remove(lineGroup.children[0]); }
+      particles.forEach(p => scene.remove(p.mesh));
+      particles = [];
+      interactiveObjects = [];
+
+      const currentTarget = targetRegion.position.clone();
+      currentTarget.y += 0.2;
+
+      nationalSources.forEach((source, index) => {
+        const controlPos = new THREE.Vector3(
+          (source.pos.x + currentTarget.x) / 2,
+          2.5 + Math.random() * 0.5,
+          (source.pos.z + currentTarget.z) / 2
+        );
+
+        const curve = new THREE.QuadraticBezierCurve3(source.pos, controlPos, currentTarget);
+
+        const points = curve.getPoints(30);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.4 });
+        const line = new THREE.Line(lineGeo, lineMat);
+        
+        line.userData = { sourceId: source.id };
+        lineGroup.add(line);
+        interactiveObjects.push(line);
+
+        const pGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const pMat = new THREE.MeshBasicMaterial({ color: 0xe11d48 });
+        const particle = new THREE.Mesh(pGeo, pMat);
+        
+        particle.userData = { sourceId: source.id };
+        scene.add(particle);
+        interactiveObjects.push(particle);
+
+        particles.push({
+          mesh: particle,
+          curve: curve,
+          progress: index * 0.25
+        });
+      });
+    }
+
+    createArcRoutes();
+
+    // 支援先切替イベント
+    document.getElementById('region-select').addEventListener('change', (e) => {
+      currentTargetKey = e.target.value;
+      if (targetPositions[currentTargetKey]) {
+        targetRegion.position.copy(targetPositions[currentTargetKey]);
+        createArcRoutes();
+        
+        // メッセージとX投稿リンクの切り替え
+        currentMsgIndex = 0;
+        updateMessageDisplay(messageDataByTarget[currentTargetKey][0]);
+        updateXShareLink(currentTargetKey);
+      }
+    });
+
+
+    /* ------------------------------------------
+       ⑤ 3Dオブジェクトのクリック検出処理
+    ------------------------------------------- */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    raycaster.params.Line.threshold = 0.25; 
+
+    container.addEventListener('click', (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(interactiveObjects);
+
+      if (intersects.length > 0) {
+        const clickedObj = intersects[0].object;
+        const sourceId = clickedObj.userData.sourceId;
+
+        const targetList = messageDataByTarget[currentTargetKey];
+        const foundIndex = targetList.findIndex(msg => msg.sourceId === sourceId);
+
+        if (foundIndex !== -1) {
+          currentMsgIndex = foundIndex;
+          updateMessageDisplay(targetList[currentMsgIndex]);
+
+          clearInterval(autoSwitchTimer);
+          autoSwitchTimer = setInterval(() => {
+            currentMsgIndex = (currentMsgIndex + 1) % targetList.length;
+            updateMessageDisplay(targetList[currentMsgIndex]);
+          }, 10000);
+        }
+      }
+    });
+
+
+    /* ------------------------------------------
+       ⑥ 動的データ更新用関数（バックエンド連携用）
+    ------------------------------------------- */
+    function updateMapData(newTargetKey, newSourcesData, newMessagesData) {
+      if (newTargetKey) {
+        currentTargetKey = newTargetKey;
+        document.getElementById('region-select').value = newTargetKey;
+        if (targetPositions[currentTargetKey]) {
+          targetRegion.position.copy(targetPositions[currentTargetKey]);
+        }
+        updateXShareLink(currentTargetKey);
+      }
+
+      if (newSourcesData) {
+        nationalSources = newSourcesData;
+      }
+
+      if (newMessagesData) {
+        messageDataByTarget[currentTargetKey] = newMessagesData;
+      }
+
+      createArcRoutes();
+
+      currentMsgIndex = 0;
+      if (messageDataByTarget[currentTargetKey] && messageDataByTarget[currentTargetKey].length > 0) {
+        updateMessageDisplay(messageDataByTarget[currentTargetKey][0]);
+      }
+    }
+
+
+    /* ------------------------------------------
+       ⑦ 描画ループ ＆ リサイズ追従
+    ------------------------------------------- */
+    function animate() {
+      requestAnimationFrame(animate);
+
+      particles.forEach(p => {
+        p.progress += 0.007;
+        if (p.progress > 1) p.progress = 0;
+        const point = p.curve.getPoint(p.progress);
+        p.mesh.position.copy(point);
+      });
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+  </script>
+
+</body>
+</html>
