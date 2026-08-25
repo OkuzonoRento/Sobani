@@ -5,617 +5,847 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>つなぐる</title>
   
-  <!-- CSSライブラリのリセット -->
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/style.css">
   
-  <!-- 3Dを描画するためのThree.jsライブラリ -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
   <style>
-    /* ==========================================
-       1. ヘッダーエリア
-    =========================================== */
-    .site-header {
-      position: sticky;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 100;
-      background-color: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid #e2e8f0;
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background-color: #e11d48;
-      color: #ffffff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: bold;
-    }
-
-    .logo-text {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: #0f172a;
-    }
-
-    .header-nav {
-      display: flex;
-      gap: 32px;
-    }
-
-    .nav-link {
-      font-size: 14px;
-      font-weight: 500;
-      color: #475569;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .nav-link:hover {
-      color: #e11d48;
-    }
-
-    @media (max-width: 640px) {
-      .header-nav {
-        display: none;
-      }
-    }
-
-    .menu-container {
-      position: relative;
-    }
-
-    .menu-button {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background-color: #fff1f2;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s ease;
-    }
-
-    .menu-button:hover {
-      background-color: #ffe4e6;
-    }
-
-    .menu-button svg {
-      width: 20px;
-      height: 20px;
-      stroke: #e11d48;
-    }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      width: 200px;
-      background-color: #ffffff;
-      border: 1px solid #ffe4e6;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.08);
-      padding: 8px 0;
-      z-index: 110;
-      flex-direction: column;
-    }
-
-    .dropdown-menu.is-active {
-      display: flex;
-    }
-
-    .dropdown-item {
-      padding: 10px 16px;
-      font-size: 14px;
-      color: #334155;
-      text-decoration: none;
-      transition: background-color 0.2s;
-    }
-
-    .dropdown-item:hover {
-      background-color: #fff1f2;
-      color: #e11d48;
-    }
-
-    .dropdown-item-action {
-      font-weight: bold;
-      color: #e11d48;
-      border-bottom: 1px solid #ffe4e6;
-      margin-bottom: 4px;
-      padding-bottom: 12px;
-      cursor: pointer;
-    }
-
-    .dropdown-item-action:hover {
-      background-color: #ffe4e6;
-    }
-
-    /* ==========================================
-       2. 3Dマップセクション
-    =========================================== */
     .map-section {
       position: relative;
-      width: 100vw;
-      margin-left: calc(-50vw + 50%);
-      height: 520px;
-      background: linear-gradient(180deg, #f8fafc 0%, #f0fdfa 40%, #e0f2fe 100%);
-      border-top: 1px solid #e0f2fe;
-      border-bottom: 1px solid #bae6fd;
+      width: 100%;
+      aspect-ratio: 768 / 500;
+      min-height: 380px;
+      max-height: 650px;
       overflow: hidden;
-      margin-top: 24px;
-    }
-
-    @media (max-width: 640px) {
-      .map-section {
-        height: 420px;
-      }
     }
 
     #map-canvas-container {
       width: 100%;
       height: 100%;
-      cursor: pointer;
-    }
-
-    .region-select-wrapper {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      z-index: 10;
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #fecdd3;
-      box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.08);
-    }
-
-    .region-select {
-      background: #ffffff;
-      border: 1px solid #fda4af;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-weight: bold;
-      color: #e11d48;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .message-card-overlay {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      z-index: 10;
-      width: calc(100% - 32px);
-      max-width: 320px;
-      background-color: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px solid #fecdd3;
-      box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.12);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .message-card-overlay.is-fading {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #fff1f2;
-    }
-
-    .card-location {
-      font-size: 12px;
-      font-weight: bold;
-      color: #e11d48;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .card-text {
-      font-size: 13px;
-      color: #334155;
-      line-height: 1.4;
-      font-weight: 500;
     }
   </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- 都道府県のマスターデータを読み込み -->
+  <script src="js/prefectures.js"></script>
 </head>
 <body>
 
-  <!-- ==========================================
-       1. ヘッダーエリア
-  =========================================== -->
+  <!-- Header -->
   <header class="site-header">
     <a href="#" class="logo-area">
       <div class="logo-icon">折鶴</div>
       <span class="logo-text">つなぐる</span>
     </a>
-    <nav class="header-nav">
-      <a href="#" class="nav-link">つなぐるについて</a>
-      <a href="#" class="nav-link">応援の仕組み</a>
-      <a href="#" class="nav-link">支援実績</a>
-    </nav>
-    <div class="menu-container">
-      <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
-      <div class="dropdown-menu" id="dropdown-menu">
-        <a href="#" 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           class="dropdown-item dropdown-item-action" 
-           id="send-message-link">
-          💬 メッセージを送る
-        </a>
-        <a href="#" class="dropdown-item">マイページ</a>
-        <a href="#" class="dropdown-item">お知らせ</a>
-        <a href="#" class="dropdown-item">お問い合わせ</a>
+    <div class="header-actions">
+      <nav class="header-nav">
+        <a href="#" class="nav-link">つなぐるについて</a>
+        <a href="#" class="nav-link">応援の仕組み</a>
+        <a href="#" class="nav-link">支援実績</a>
+      </nav>
+      <div class="menu-container">
+        <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h18"></path>
+          </svg>
+        </button>
+        <div class="dropdown-menu" id="dropdown-menu">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="dropdown-item dropdown-item-action" id="send-message-link">
+            💬 メッセージで応援する
+          </a>
+          <a href="#" class="dropdown-item dropdown-item-action open-donate-modal">
+            ❤️ 寄付で応援する
+          </a>
+
+          <div style="border-top: 1px solid #f1f5f9; margin: 4px 0;"></div>
+
+          <a href="#" class="dropdown-item">マイページ</a>
+          <a href="#" class="dropdown-item">お知らせ</a>
+          <a href="#" class="dropdown-item" id="open-bug-modal">🐛 不具合・エラーの報告</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- ==========================================
-       2. 3D日本地図 ＆ メッセージ表示セクション
-  =========================================== -->
+  <!-- 3D Map Section -->
   <section id="section-3d-map" class="map-section">
     
     <div class="region-select-wrapper">
-      <select id="region-select" class="region-select">
-        <option value="ishikawa">石川県</option>
-        <option value="kumamoto">熊本県</option>
-      </select>
+      <select id="region-select" class="region-select"></select>
     </div>
 
     <div id="map-canvas-container"></div>
 
+    <!-- Message Card -->
     <div class="message-card-overlay" id="message-card">
       <div class="card-header">
         <div class="card-location">
-          📍 <span id="msg-location">東京都からのメッセージ</span>
+          📍 <span id="msg-location">全国からのメッセージ</span>
+          <span id="msg-user-id" class="card-user-id"></span>
         </div>
       </div>
       <p class="card-text" id="msg-text">
-        「一日も早い復興と、皆様の安全を心よりお祈り申し上げます。みんなで応援しています！」
+        「皆様からの温かい応援メッセージをお待ちしております。」
       </p>
     </div>
 
   </section>
 
-  <!-- ==========================================
-       3. JavaScript 制御スクリプト
-  =========================================== -->
+  <!-- Donate Banner -->
+  <section class="donate-banner-section">
+    <button class="btn-donate-large open-donate-modal">
+      <span>❤️</span>
+      <span>被災地を寄付で応援する</span>
+    </button>
+  </section>
+
+  <!-- Donate Modal -->
+  <div class="modal-backdrop" id="donate-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+
+      <div id="modal-step-1">
+        <h3 class="modal-title">寄付の方法を選択</h3>
+        <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
+        
+        <div class="donate-options">
+          <div class="donate-option-card" id="option-ad-donate">
+            <div class="option-icon">📺</div>
+            <div class="option-info">
+              <div class="option-title">
+                広告を見て寄付する
+                <span class="option-tag tag-free">無料</span>
+              </div>
+              <p class="option-desc">
+                数十秒の広告を試聴すると、発生した広告収益の一部がそのまま被災地へ寄付されます。
+              </p>
+            </div>
+          </div>
+
+          <div class="donate-option-card" id="option-external-donate">
+            <div class="option-icon">🤝</div>
+            <div class="option-info">
+              <div class="option-title">
+                外部サイトで寄付する
+                <span class="option-tag tag-direct">直接支援</span>
+              </div>
+              <p class="option-desc">
+                日本赤十字社や各自治体の公式義援金窓口から、直接支援金を届けることができます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-step-2" style="display: none;">
+        <button id="modal-back-btn" style="font-size: 13px; color: #64748b; margin-bottom: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          ← 戻る
+        </button>
+        <h3 class="modal-title">寄付先の選択</h3>
+        <p class="modal-subtitle">支援金を送りたい機関をお選びください</p>
+        
+        <div class="donate-options">
+          <a href="https://www.jrc.or.jp/contribute/" target="_blank" rel="noopener noreferrer" class="donate-option-card">
+            <div class="option-icon">🏥</div>
+            <div class="option-info">
+              <div class="option-title">
+                日本赤十字社
+                <span class="option-tag tag-direct">公式窓口</span>
+              </div>
+              <p class="option-desc">
+                日本赤十字社の公式義援金窓口を通じて被災地へ支援金を届けます。
+              </p>
+            </div>
+          </a>
+
+          <a href="#" target="_blank" rel="noopener noreferrer" class="donate-option-card" id="option-local-gov">
+            <div class="option-icon">🏛️</div>
+            <div class="option-info">
+              <div class="option-title">
+                <span id="gov-title-text">都道府県公式義援金</span>
+                <span class="option-tag tag-direct">自治体直接</span>
+              </div>
+              <p class="option-desc" id="gov-desc-text">
+                自治体が開設している公式の災害義援金・寄付金口座へ直接振り込みます。
+              </p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bug Report Modal -->
+  <div class="modal-backdrop" id="bug-report-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="bug-modal-close">&times;</button>
+
+      <h3 class="modal-title">🐛 不具合・エラーの報告</h3>
+      <p class="modal-subtitle">表示崩れや動作の不具合がありましたらお知らせください。</p>
+
+      <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        
+        <div>
+          <label style="font-size: 12px; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">
+            不具合の内容 <span style="color: #e11d48;">*</span>
+          </label>
+          <textarea id="bug-description" required rows="4" placeholder="（例）3Dマップの粒子をタップしてもメッセージが表示されない、画面の文字が重なっている等" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">
+            ご連絡先メールアドレス（任意）
+          </label>
+          <input type="email" id="bug-email" placeholder="example@email.com" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        </div>
+
+        <!-- 自動取得する環境情報（アコーディオン） -->
+        <details style="font-size: 12px; color: #64748b; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <summary style="cursor: pointer; font-weight: bold;">自動送信される環境情報（確認する）</summary>
+          <div style="margin-top: 8px; font-family: monospace; font-size: 11px; word-break: break-all;">
+            <p>選択都道府県: <span id="bug-env-pref">-</span></p>
+            <p>UserAgent: <span id="bug-env-ua">-</span></p>
+            <p>画面サイズ: <span id="bug-env-screen">-</span></p>
+          </div>
+        </details>
+
+        <button type="submit" class="btn-donate-large" style="margin-top: 8px; width: 100%; justify-content: center;">
+          <span>送信する</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script>
-    /* ------------------------------------------
-       ① ヘッダーのドロップダウンメニュー制御 (Safari対応)
-    ------------------------------------------- */
-    const menuBtn = document.getElementById('menu-btn');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-    
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle('is-active');
-    });
+    document.addEventListener('DOMContentLoaded', () => {
 
-    document.addEventListener('click', (e) => {
-      if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
-        dropdownMenu.classList.remove('is-active');
-      }
-    });
-
-
-    /* ------------------------------------------
-       ② X（Twitter）投稿リンクの動的更新処理 (#つなぐる〇〇 のみ設定)
-    ------------------------------------------- */
-    const sendMsgLink = document.getElementById('send-message-link');
-
-    function updateXShareLink(targetKey) {
-      const targetNames = {
-        ishikawa: "石川県",
-        kumamoto: "熊本県"
+      /* 地方・都道府県定義 */
+      const REGION_MAP = {
+        tokyo:    ["東京都"],
+        tohoku:   ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
+        kanto:    ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "神奈川県"],
+        chubu:    ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"],
+        kinki:    ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
+        chugoku:  ["鳥取県", "島根県", "岡山県", "広島県", "山口県"],
+        shikoku:  ["徳島県", "香川県", "愛媛県", "高知県"],
+        kyushu:   ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"]
       };
-      
-      const targetName = targetNames[targetKey] || "被災地";
-      
-      // #つなぐる〇〇（選択中の県名）のみを本文に埋め込み
-      const tweetContent = `#つなぐる${targetName}`;
-      
-      sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
-    }
 
-    sendMsgLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      const url = sendMsgLink.href;
-      if (url && url !== '#') {
-        window.open(url, '_blank', 'noopener,noreferrer');
+      const SOURCE_POSITIONS = {
+        "北海道": new THREE.Vector3(3.8,  0.1, -2.4),
+        "東京都": new THREE.Vector3(1.7,  0.1,  0.6),
+        "神奈川県": new THREE.Vector3(1.7,  0.1,  0.8),
+        "埼玉県": new THREE.Vector3(1.6,  0.1,  0.5),
+        "千葉県": new THREE.Vector3(2.2,  0.1,  0.7),
+        "大阪府": new THREE.Vector3(0.1,  0.1,  0.7),
+        "愛知県": new THREE.Vector3(0.5,  0.1,  0.6),
+        "福岡県": new THREE.Vector3(-2.8, 0.1,  1.4),
+        "広島県": new THREE.Vector3(-1.7, 0.1,  0.6)
+      };
+
+      const regionSelect = document.getElementById('region-select');
+
+      if (typeof DISPLAY_PREFECTURES !== 'undefined' && Array.isArray(DISPLAY_PREFECTURES)) {
+        DISPLAY_PREFECTURES.forEach(key => {
+          if (PREFECTURES_DATA[key]) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = PREFECTURES_DATA[key].name;
+            regionSelect.appendChild(opt);
+          }
+        });
       }
-    });
 
+      let currentTargetKey = (typeof DISPLAY_PREFECTURES !== 'undefined' && DISPLAY_PREFECTURES.length > 0)
+        ? DISPLAY_PREFECTURES[0] 
+        : 'ishikawa';
+      
+      regionSelect.value = currentTargetKey;
 
-    /* ------------------------------------------
-       ③ 支援先（目的地）ごとのメッセージデータ
-    ------------------------------------------- */
-    const messageDataByTarget = {
-      ishikawa: [
-        { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「一日も早い復興と、皆様の安全を心よりお祈り申し上げます。みんなで応援しています！」" },
-        { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「少しでも力になれれば幸いです。現地で頑張る皆様に届きますように！」" },
-        { sourceId: "Hokkaido", location: "北海道からのメッセージ", text: "「北の大地から能登へ。一日も早い復興を心より応援しています！」" },
-        { sourceId: "Fukuoka",  location: "福岡県からのメッセージ",   text: "「九州からも温かい気持ちを送ります。一歩ずつ前へ進んでいきましょう。」" }
-      ],
-      kumamoto: [
-        { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「熊本の皆様へ、温かいご支援の輪が広がりますように。」" },
-        { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「関西から元気を送ります！皆様の笑顔が一日も早く戻りますように。」" },
-        { sourceId: "Hokkaido", location: "北海道からのメッセージ", text: "「遠く離れていますが、熊本の皆様の力強い復興をずっと見守っています。」" },
-        { sourceId: "Fukuoka",  location: "福岡県からのメッセージ",   text: "「お隣の福岡からいつも応援しています。一緒に頑張りましょう！」" }
-      ]
-    };
+      /* UI/Modal イベント */
+      const menuBtn = document.getElementById('menu-btn');
+      const dropdownMenu = document.getElementById('dropdown-menu');
+      const donateModal = document.getElementById('donate-modal');
+      const modalClose = document.getElementById('modal-close');
+      const openDonateBtns = document.querySelectorAll('.open-donate-modal');
+      const modalStep1 = document.getElementById('modal-step-1');
+      const modalStep2 = document.getElementById('modal-step-2');
+      const optionExternalDonate = document.getElementById('option-external-donate');
+      const modalBackBtn = document.getElementById('modal-back-btn');
 
-    let currentTargetKey = 'ishikawa';
-    let currentMsgIndex = 0;
+      function resetModalSteps() {
+        modalStep1.style.display = 'block';
+        modalStep2.style.display = 'none';
+      }
 
-    const cardEl = document.getElementById('message-card');
-    const locEl = document.getElementById('msg-location');
-    const textEl = document.getElementById('msg-text');
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('is-active');
+      });
 
-    updateXShareLink(currentTargetKey);
+      document.addEventListener('click', (e) => {
+        if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+          dropdownMenu.classList.remove('is-active');
+        }
+      });
 
-    function updateMessageDisplay(data) {
-      cardEl.classList.add('is-fading');
-      setTimeout(() => {
-        locEl.textContent = data.location;
-        textEl.textContent = data.text;
-        cardEl.classList.remove('is-fading');
-      }, 300);
-    }
+      openDonateBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (btn.tagName === 'A') e.preventDefault();
+          resetModalSteps();
+          donateModal.classList.add('is-open');
+          dropdownMenu.classList.remove('is-active');
+        });
+      });
 
-    let autoSwitchTimer = setInterval(() => {
-      const currentList = messageDataByTarget[currentTargetKey];
-      currentMsgIndex = (currentMsgIndex + 1) % currentList.length;
-      updateMessageDisplay(currentList[currentMsgIndex]);
-    }, 10000);
+      modalClose.addEventListener('click', () => donateModal.classList.remove('is-open'));
+      donateModal.addEventListener('click', (e) => {
+        if (e.target === donateModal) donateModal.classList.remove('is-open');
+      });
 
+      optionExternalDonate.addEventListener('click', () => {
+        modalStep1.style.display = 'none';
+        modalStep2.style.display = 'block';
+      });
 
-    /* ------------------------------------------
-       ④ Three.js 3D日本地図 ＆ 描画処理
-    ------------------------------------------- */
-    const container = document.getElementById('map-canvas-container');
+      modalBackBtn.addEventListener('click', () => resetModalSteps());
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 8, 11);
-    camera.lookAt(0, 0, 0);
+      document.getElementById('option-ad-donate').addEventListener('click', () => {
+        alert('動画広告が再生されます。\n視聴完了後、収益から被災地へ寄付が行われます。ご協力ありがとうございます！');
+        donateModal.classList.remove('is-open');
+      });
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
+      const sendMsgLink = document.getElementById('send-message-link');
+      const optionLocalGov = document.getElementById('option-local-gov');
+      const govTitleText = document.getElementById('gov-title-text');
+      const govDescText = document.getElementById('gov-desc-text');
 
-    const clock = new THREE.Clock();
+      function updateTargetLinks(targetKey) {
+        const data = PREFECTURES_DATA[targetKey] || PREFECTURES_DATA.ishikawa;
+        govTitleText.textContent = `${data.name}公式義援金`;
+        govDescText.textContent = data.desc;
+        optionLocalGov.href = data.url;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-    scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    dirLight.position.set(5, 10, 7);
-    scene.add(dirLight);
+        const tweetContent = `【${data.name}へ応援メッセージを送ろう】\n#つなぐる${data.name}`;
+        sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
+      }
 
-    const mapGroup = new THREE.Group();
-    const mapBase = new THREE.Mesh(
-      new THREE.BoxGeometry(7.5, 0.2, 4.5),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 })
-    );
-    mapGroup.add(mapBase);
+      sendMsgLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = sendMsgLink.href;
+        if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+      });
 
-    const targetRegion = new THREE.Mesh(
-      new THREE.BoxGeometry(0.9, 0.4, 0.9),
-      new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1 })
-    );
+      /* 不具合報告モーダルの制御 */
+      const bugModal = document.getElementById('bug-report-modal');
+      const openBugBtn = document.getElementById('open-bug-modal');
+      const bugModalClose = document.getElementById('bug-modal-close');
+      const bugForm = document.getElementById('bug-report-form');
 
-    const targetPositions = {
-      ishikawa: new THREE.Vector3(-0.4, 0.2, -0.2),
-      kumamoto: new THREE.Vector3(-2.2, 0.2, 1.2)
-    };
+      if (openBugBtn) {
+        openBugBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          dropdownMenu.classList.remove('is-active');
 
-    targetRegion.position.copy(targetPositions.ishikawa);
-    mapGroup.add(targetRegion);
-    scene.add(mapGroup);
+          const activePrefName = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].name : currentTargetKey;
+          document.getElementById('bug-env-pref').textContent = activePrefName || "未選択";
+          document.getElementById('bug-env-ua').textContent = navigator.userAgent;
+          document.getElementById('bug-env-screen').textContent = `${window.innerWidth}x${window.innerHeight}`;
 
-    const nationalSources = [
-      { id: "Hokkaido", name: "北海道", pos: new THREE.Vector3(2.5, 0.1, -1.5) },
-      { id: "Tokyo",    name: "東京都", pos: new THREE.Vector3(1.2, 0.1, 0.4) },
-      { id: "Osaka",    name: "大阪府", pos: new THREE.Vector3(0.1, 0.1, 0.5) },
-      { id: "Fukuoka",  name: "福岡県", pos: new THREE.Vector3(-2.0, 0.1, 1.0) }
-    ];
+          bugModal.classList.add('is-open');
+        });
+      }
 
-    let particles = [];
-    let lineGroup = new THREE.Group();
-    scene.add(lineGroup);
+      if (bugModalClose) {
+        bugModalClose.addEventListener('click', () => bugModal.classList.remove('is-open'));
+      }
 
-    let interactiveObjects = [];
+      bugModal.addEventListener('click', (e) => {
+        if (e.target === bugModal) bugModal.classList.remove('is-open');
+      });
 
-    function createArcRoutes() {
-      while(lineGroup.children.length > 0) { lineGroup.remove(lineGroup.children[0]); }
-      particles.forEach(p => scene.remove(p.mesh));
-      particles = [];
-      interactiveObjects = [];
+      bugForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      const currentTarget = targetRegion.position.clone();
-      currentTarget.y += 0.2;
+        const description = document.getElementById('bug-description').value;
+        const userEmail = document.getElementById('bug-email').value || "未入力";
+        const pref = document.getElementById('bug-env-pref').textContent;
+        const ua = document.getElementById('bug-env-ua').textContent;
+        const screenSize = document.getElementById('bug-env-screen').textContent;
 
-      nationalSources.forEach((source, index) => {
+        const payload = {
+          description,
+          userEmail,
+          pref,
+          ua,
+          screenSize,
+          createdAt: new Date().toISOString()
+        };
+
+        console.log('不具合報告データ:', payload);
+
+        /*
+        // API送信例
+        try {
+          await fetch('YOUR_API_ENDPOINT', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (error) {
+          alert('送信に失敗しました。時間をおいて再度お試しください。');
+          return;
+        }
+        */
+
+        alert('不具合のご報告ありがとうございます。\n内容を確認の上、改善に努めてまいります。');
+        bugForm.reset();
+        bugModal.classList.remove('is-open');
+      });
+
+      /* メッセージ ＆ タイマー */
+      let allMessages = []; 
+      let currentFilteredMessages = []; 
+      let currentMsgIndex = -1;
+      let autoSwitchTimer = null;
+      let routeIntervalTimer = null;
+
+      const cardEl = document.getElementById('message-card');
+      const locEl = document.getElementById('msg-location');
+      const userIdEl = document.getElementById('msg-user-id');
+      const textEl = document.getElementById('msg-text');
+
+      async function fetchMessages() {
+        allMessages = [
+          { sourceId: "Tokyo",    userId: "@taro_123",     from: "東京都", to: "ishikawa", message: "一日も早い復興と、皆様の安全を心よりお祈り申し上げます。" },
+          { sourceId: "Osaka",    userId: "@hanako_osaka", from: "大阪府", to: "ishikawa", message: "少しでも力になれれば幸いです。みんなで応援しています！" },
+          { sourceId: "Fukuoka",  userId: "@fukuoka_ken",  from: "福岡県", to: "ishikawa", message: "九州からもたくさんの元気と支援を送ります！" },
+          { sourceId: "Hokkaido", userId: "@north_user",   from: "北海道", to: "ishikawa", message: "遠くからですが、いつも思っています。頑張ってください！" },
+          { sourceId: "Tokyo2",   userId: "@tokyo_supporter", from: "東京都", to: "ishikawa", message: "みんなで助け合っていきましょう。応援しています！" },
+          { sourceId: "Kanagawa", userId: "@bay_user",     from: "神奈川県", to: "ishikawa", message: "神奈川からも応援のパワーを送ります！" }
+        ];
+
+        filterMessagesByTarget(currentTargetKey);
+      }
+
+      function filterMessagesByTarget(targetKey) {
+        currentFilteredMessages = allMessages.filter(item => item.to === targetKey);
+        currentMsgIndex = -1;
+
+        if (currentFilteredMessages.length > 0) {
+          displayRandomMessage();
+          startAutoSwitchTimer();
+        } else {
+          stopAutoSwitchTimer();
+          updateMessageDisplay({
+            from: "全国",
+            userId: "",
+            message: "皆様からの温かい応援メッセージをお待ちしております。"
+          });
+          clearArcRoutes();
+        }
+      }
+
+      function displayRandomMessage() {
+        if (currentFilteredMessages.length === 0) return;
+
+        let randomIndex;
+        if (currentFilteredMessages.length === 1) {
+          randomIndex = 0;
+        } else {
+          do {
+            randomIndex = Math.floor(Math.random() * currentFilteredMessages.length);
+          } while (randomIndex === currentMsgIndex);
+        }
+        currentMsgIndex = randomIndex;
+        updateMessageDisplay(currentFilteredMessages[currentMsgIndex]);
+      }
+
+      function updateMessageDisplay(data) {
+        cardEl.classList.add('is-fading');
+        setTimeout(() => {
+          locEl.textContent = `${data.from}からのメッセージ`;
+          userIdEl.textContent = data.userId ? data.userId : '';
+          textEl.textContent = `「${data.message}」`;
+          cardEl.classList.remove('is-fading');
+        }, 300);
+      }
+
+      function startAutoSwitchTimer() {
+        stopAutoSwitchTimer();
+        autoSwitchTimer = setInterval(() => {
+          displayRandomMessage();
+        }, 10000);
+      }
+
+      function stopAutoSwitchTimer() {
+        if (autoSwitchTimer) {
+          clearInterval(autoSwitchTimer);
+          autoSwitchTimer = null;
+        }
+      }
+
+      /* Three.js 3D表示 ＆ アニメーション制御 */
+      const container = document.getElementById('map-canvas-container');
+      const scene = new THREE.Scene();
+
+      const BASE_FOV = 45;
+      const camera = new THREE.PerspectiveCamera(BASE_FOV, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+      const CAMERA_POS = new THREE.Vector3(0, 8.6, 9.8);
+      const CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
+      
+      camera.position.copy(CAMERA_POS);
+      camera.lookAt(CAMERA_TARGET);
+
+      function fitCameraToMap() {
+        const currentWidth = container.clientWidth;
+        const currentHeight = container.clientHeight;
+        const aspect = currentWidth / currentHeight;
+
+        camera.aspect = aspect;
+
+        const MAX_EFFECTIVE_WIDTH = 1024;
+        const effectiveWidth = Math.min(currentWidth, MAX_EFFECTIVE_WIDTH);
+
+        const baseWidth = 768;
+        const widthScale = baseWidth / Math.max(effectiveWidth, 320);
+
+        if (widthScale > 1) {
+          const rad = (BASE_FOV * Math.PI) / 180;
+          const newFov = 2 * Math.atan(Math.tan(rad / 2) * widthScale) * (180 / Math.PI);
+          camera.fov = newFov;
+        } else {
+          camera.fov = BASE_FOV;
+        }
+
+        camera.updateProjectionMatrix();
+      }
+
+      fitCameraToMap();
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      const clock = new THREE.Clock();
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+
+      const mapGroup = new THREE.Group();
+      const mapBase = new THREE.Mesh(
+        new THREE.BoxGeometry(10.5, 0.2, 6.3),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 })
+      );
+      mapGroup.add(mapBase);
+
+      const targetRegion = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 0.4, 1.2),
+        new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1 })
+      );
+
+      const initialPos = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].pos : { x: -0.6, y: 0.2, z: -0.3 };
+      targetRegion.position.set(initialPos.x, initialPos.y, initialPos.z);
+      mapGroup.add(targetRegion);
+      scene.add(mapGroup);
+
+      let particles = [];
+      let lineGroup = new THREE.Group();
+      scene.add(lineGroup);
+      let interactiveObjects = [];
+
+      function clearArcRoutes() {
+        if (routeIntervalTimer) {
+          clearInterval(routeIntervalTimer);
+          routeIntervalTimer = null;
+        }
+
+        while (lineGroup.children.length > 0) {
+          const child = lineGroup.children[0];
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+          lineGroup.remove(child);
+        }
+
+        particles.forEach(p => {
+          if (p.mesh.geometry) p.mesh.geometry.dispose();
+          if (p.mesh.material) p.mesh.material.dispose();
+          scene.remove(p.mesh);
+        });
+
+        particles = [];
+        interactiveObjects = [];
+      }
+
+      function getAvailableMessage(excludeRoute = null) {
+        if (currentFilteredMessages.length === 0) return null;
+
+        const activeRegions = new Set();
+        particles.forEach(p => {
+          if (p !== excludeRoute && p.line.userData && p.line.userData.messageData) {
+            activeRegions.add(p.line.userData.messageData.from);
+          }
+        });
+
+        const available = currentFilteredMessages.filter(msg => !activeRegions.has(msg.from));
+        const pool = available.length > 0 ? available : currentFilteredMessages;
+        const idx = Math.floor(Math.random() * pool.length);
+        return pool[idx];
+      }
+
+      function createSingleRoute() {
+        const msg = getAvailableMessage();
+        if (!msg) return;
+
+        const currentTarget = targetRegion.position.clone();
+        currentTarget.y += 0.2;
+
+        const startPos = SOURCE_POSITIONS[msg.from] 
+          ? SOURCE_POSITIONS[msg.from].clone() 
+          : new THREE.Vector3(1.0, 0.1, 0.4);
+
         const controlPos = new THREE.Vector3(
-          (source.pos.x + currentTarget.x) / 2,
-          2.5 + Math.random() * 0.5,
-          (source.pos.z + currentTarget.z) / 2
+          (startPos.x + currentTarget.x) / 2,
+          2.0 + Math.random() * 0.8,
+          (startPos.z + currentTarget.z) / 2
         );
 
-        const curve = new THREE.QuadraticBezierCurve3(source.pos, controlPos, currentTarget);
+        const curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
 
-        const points = curve.getPoints(30);
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMat = new THREE.LineBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.4 });
+        const lineGeo = new THREE.BufferGeometry();
+        const lineMat = new THREE.LineBasicMaterial({ 
+          color: 0xf43f5e, 
+          transparent: true, 
+          opacity: 0.8 
+        });
         const line = new THREE.Line(lineGeo, lineMat);
-        
-        line.userData = { sourceId: source.id };
+        line.userData = { messageData: msg };
         lineGroup.add(line);
         interactiveObjects.push(line);
 
         const pGeo = new THREE.SphereGeometry(0.12, 16, 16);
-        const pMat = new THREE.MeshBasicMaterial({ color: 0xe11d48 });
+        const pMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 1 });
         const particle = new THREE.Mesh(pGeo, pMat);
-        
-        particle.userData = { sourceId: source.id };
+        particle.visible = false;
+
+        const hitGeo = new THREE.SphereGeometry(0.35, 8, 8);
+        const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+        const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+        hitMesh.userData = { messageData: msg };
+        particle.add(hitMesh);
+        interactiveObjects.push(hitMesh);
+
         scene.add(particle);
-        interactiveObjects.push(particle);
 
-        particles.push({
+        const routeObj = {
           mesh: particle,
+          hitMesh: hitMesh,
+          line: line,
           curve: curve,
-          progress: index * 0.25
+          progress: 0.0,
+          startProgress: 0.0,
+          endProgress: 0.0,
+          drawSpeed: 1.8,
+          startDelay: Math.random() * 2.0,
+          pendingReset: false,
+          state: 'WAITING'
+        };
+
+        particles.push(routeObj);
+      }
+
+      function startRouteIntervalTimer() {
+        if (routeIntervalTimer) clearInterval(routeIntervalTimer);
+
+        routeIntervalTimer = setInterval(() => {
+          if (particles.length === 0) return;
+          const availableRoutes = particles.filter(p => !p.pendingReset);
+          if (availableRoutes.length > 0) {
+            const target = availableRoutes[Math.floor(Math.random() * availableRoutes.length)];
+            target.pendingReset = true;
+          }
+        }, 8000);
+      }
+
+      function initArcRoutes(count = 5) {
+        clearArcRoutes();
+        for (let i = 0; i < count; i++) {
+          createSingleRoute();
+        }
+        startRouteIntervalTimer();
+      }
+
+      function resetSingleRoute(p) {
+        const msg = getAvailableMessage(p);
+        if (!msg) return;
+
+        const currentTarget = targetRegion.position.clone();
+        currentTarget.y += 0.2;
+
+        const startPos = SOURCE_POSITIONS[msg.from] 
+          ? SOURCE_POSITIONS[msg.from].clone() 
+          : new THREE.Vector3(1.0, 0.1, 0.4);
+
+        const controlPos = new THREE.Vector3(
+          (startPos.x + currentTarget.x) / 2,
+          2.0 + Math.random() * 0.8,
+          (startPos.z + currentTarget.z) / 2
+        );
+
+        p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
+        p.line.userData = { messageData: msg };
+        p.hitMesh.userData = { messageData: msg };
+
+        p.progress = 0.0;
+        p.startProgress = 0.0;
+        p.endProgress = 0.0;
+        p.startDelay = 0;
+        p.line.material.opacity = 0.8;
+        p.mesh.visible = false;
+        p.pendingReset = false;
+        p.state = 'DRAWING';
+      }
+
+      regionSelect.addEventListener('change', (e) => {
+        currentTargetKey = e.target.value;
+        const targetData = PREFECTURES_DATA[currentTargetKey];
+        if (targetData) {
+          targetRegion.position.set(targetData.pos.x, targetData.pos.y, targetData.pos.z);
+          filterMessagesByTarget(currentTargetKey);
+          updateTargetLinks(currentTargetKey);
+          initArcRoutes();
+        }
+      });
+
+      /* 3Dレイキャスト（判定ロジック） */
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      raycaster.params.Line.threshold = 0.2; 
+
+      function handlePointerSelect(clientX, clientY) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        
+        mouse.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        
+        const validObjects = interactiveObjects.filter(obj => {
+          if (obj.parent && obj.parent.isMesh) {
+            return obj.parent.visible;
+          }
+          return obj.visible;
         });
-      });
-    }
 
-    createArcRoutes();
+        const intersects = raycaster.intersectObjects(validObjects, true);
 
-    document.getElementById('region-select').addEventListener('change', (e) => {
-      currentTargetKey = e.target.value;
-      if (targetPositions[currentTargetKey]) {
-        targetRegion.position.copy(targetPositions[currentTargetKey]);
-        createArcRoutes();
-        
-        currentMsgIndex = 0;
-        updateMessageDisplay(messageDataByTarget[currentTargetKey][0]);
-        updateXShareLink(currentTargetKey);
-      }
-    });
-
-
-    /* ------------------------------------------
-       ⑤ 3Dオブジェクトのクリック検出処理
-    ------------------------------------------- */
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    raycaster.params.Line.threshold = 0.25; 
-
-    container.addEventListener('click', (event) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(interactiveObjects);
-
-      if (intersects.length > 0) {
-        const clickedObj = intersects[0].object;
-        const sourceId = clickedObj.userData.sourceId;
-
-        const targetList = messageDataByTarget[currentTargetKey];
-        const foundIndex = targetList.findIndex(msg => msg.sourceId === sourceId);
-
-        if (foundIndex !== -1) {
-          currentMsgIndex = foundIndex;
-          updateMessageDisplay(targetList[currentMsgIndex]);
-
-          clearInterval(autoSwitchTimer);
-          autoSwitchTimer = setInterval(() => {
-            currentMsgIndex = (currentMsgIndex + 1) % targetList.length;
-            updateMessageDisplay(targetList[currentMsgIndex]);
-          }, 10000);
+        if (intersects.length > 0) {
+          intersects.sort((a, b) => a.distance - b.distance);
+          
+          let selected = intersects[0].object;
+          if (selected.userData && selected.userData.messageData) {
+            updateMessageDisplay(selected.userData.messageData);
+            startAutoSwitchTimer();
+          }
         }
       }
-    });
 
-
-    /* ------------------------------------------
-       ⑥ 動的データ更新用関数
-    ------------------------------------------- */
-    function updateMapData(newTargetKey, newSourcesData, newMessagesData) {
-      if (newTargetKey) {
-        currentTargetKey = newTargetKey;
-        document.getElementById('region-select').value = newTargetKey;
-        if (targetPositions[currentTargetKey]) {
-          targetRegion.position.copy(targetPositions[currentTargetKey]);
-        }
-        updateXShareLink(currentTargetKey);
-      }
-
-      if (newSourcesData) {
-        nationalSources = newSourcesData;
-      }
-
-      if (newMessagesData) {
-        messageDataByTarget[currentTargetKey] = newMessagesData;
-      }
-
-      createArcRoutes();
-
-      currentMsgIndex = 0;
-      if (messageDataByTarget[currentTargetKey] && messageDataByTarget[currentTargetKey].length > 0) {
-        updateMessageDisplay(messageDataByTarget[currentTargetKey][0]);
-      }
-    }
-
-
-    /* ------------------------------------------
-       ⑦ 描画ループ ＆ リサイズ追従
-    ------------------------------------------- */
-    const DURATION_SECONDS = 2.5;
-
-    function animate() {
-      requestAnimationFrame(animate);
-
-      const delta = clock.getDelta();
-
-      particles.forEach(p => {
-        p.progress += delta / DURATION_SECONDS;
-        if (p.progress > 1) p.progress %= 1;
-        
-        const point = p.curve.getPoint(p.progress);
-        p.mesh.position.copy(point);
+      container.addEventListener('click', (event) => {
+        handlePointerSelect(event.clientX, event.clientY);
       });
 
-      renderer.render(scene, camera);
-    }
-    animate();
+      container.addEventListener('touchstart', (event) => {
+        if (event.touches.length > 0) {
+          const touch = event.touches[0];
+          handlePointerSelect(touch.clientX, touch.clientY);
+        }
+      }, { passive: true });
 
-    window.addEventListener('resize', () => {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      /* アニメーションループ */
+      const DURATION_SECONDS = 3.5;
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const delta = clock.getDelta();
+
+        particles.forEach(p => {
+          if (p.state === 'WAITING') {
+            p.startDelay -= delta;
+            if (p.startDelay <= 0) {
+              p.state = 'DRAWING';
+            }
+          }
+          else if (p.state === 'DRAWING') {
+            p.mesh.visible = false;
+            p.endProgress += delta * p.drawSpeed;
+
+            if (p.endProgress >= 1.0) {
+              p.endProgress = 1.0;
+              p.state = 'MOVING';
+              p.progress = 0.0;
+              p.mesh.visible = true;
+              p.mesh.position.copy(p.curve.getPoint(0.0));
+            }
+          }
+          else if (p.state === 'MOVING') {
+            p.progress += delta / DURATION_SECONDS;
+
+            if (p.progress >= 1.0) {
+              p.progress = 1.0;
+              if (p.pendingReset) {
+                p.state = 'LEAVING';
+              } else {
+                p.progress = 0.0;
+              }
+            }
+
+            p.mesh.position.copy(p.curve.getPoint(p.progress));
+          }
+          else if (p.state === 'LEAVING') {
+            p.mesh.visible = false;
+            p.startProgress += delta * p.drawSpeed;
+
+            if (p.startProgress >= 1.0) {
+              p.startProgress = 1.0;
+              resetSingleRoute(p);
+            }
+            p.line.material.opacity = Math.max(0, 0.8 * (1.0 - p.startProgress));
+          }
+
+          if (p.state !== 'WAITING') {
+            const tStart = p.startProgress;
+            const tEnd = p.endProgress;
+
+            if (tEnd > tStart) {
+              const pointsCount = Math.max(2, Math.floor(50 * (tEnd - tStart)));
+              const drawPoints = [];
+              for (let i = 0; i < pointsCount; i++) {
+                const t = tStart + (i / (pointsCount - 1)) * (tEnd - tStart);
+                drawPoints.push(p.curve.getPoint(t));
+              }
+              p.line.geometry.setFromPoints(drawPoints);
+            }
+          }
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      updateTargetLinks(currentTargetKey);
+      fetchMessages();
+      initArcRoutes();
+      animate();
+
+      window.addEventListener('resize', () => {
+        fitCameraToMap();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
     });
   </script>
 

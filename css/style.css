@@ -1,111 +1,117 @@
+@charset "UTF-8";
+
 /* ==========================================
-   1. ヘッダーエリア
-   - 画面上部に固定（sticky）
-   - 背景は半透明＋すりガラス効果（backdrop-filter）
+   Base Settings & Layout
+=========================================== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* ==========================================
+   Header Style
 =========================================== */
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 100;
-  background-color: rgba(255, 255, 255, 0.92);
+  height: 64px;
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid #e2e8f0;
-  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1000;
 }
 
-/* ロゴアイコン ＆ ブランド名 */
 .logo-area {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: bold;
+  font-size: 18px;
 }
 
 .logo-icon {
-  width: 36px;
-  height: 36px;
-  background-color: #e11d48; /* 主色：赤 */
-  color: #ffffff;            /* 文字：白 */
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  background: #e11d48;
+  color: #ffffff;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
+  font-size: 14px;
 }
 
-.logo-text {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #0f172a;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* ヘッダー中央のナビゲーション（スマホでは非表示） */
 .header-nav {
   display: flex;
-  gap: 32px;
+  gap: 20px;
 }
 
 .nav-link {
+  text-decoration: none;
+  color: #475569;
   font-size: 14px;
   font-weight: 500;
-  color: #475569;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
 }
 
 .nav-link:hover {
   color: #e11d48;
 }
 
-@media (max-width: 640px) {
-  .header-nav {
-    display: none;
-  }
-}
-
-/* ヘッダー右側：メニューボタンとドロップダウン */
 .menu-container {
   position: relative;
 }
 
 .menu-button {
+  background: none;
+  border: none;
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background-color: #fff1f2;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  color: #475569;
+  transition: background 0.2s;
 }
 
 .menu-button:hover {
-  background-color: #ffe4e6;
+  background: #f1f5f9;
 }
 
 .menu-button svg {
-  width: 20px;
-  height: 20px;
-  stroke: #e11d48;
+  width: 24px;
+  height: 24px;
 }
 
 .dropdown-menu {
-  display: none;
   position: absolute;
-  top: calc(100% + 8px);
+  top: 48px;
   right: 0;
-  width: 180px;
-  background-color: #ffffff;
-  border: 1px solid #ffe4e6;
+  width: 200px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.08);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   padding: 8px 0;
-  z-index: 110;
+  display: none;
   flex-direction: column;
 }
 
@@ -115,37 +121,56 @@
 
 .dropdown-item {
   padding: 10px 16px;
-  font-size: 14px;
+  text-decoration: none;
   color: #334155;
-  transition: background-color 0.2s;
+  font-size: 14px;
+  transition: background 0.2s;
 }
 
 .dropdown-item:hover {
-  background-color: #fff1f2;
+  background: #f8fafc;
+  color: #e11d48;
+}
+
+.dropdown-item-action {
+  font-weight: bold;
   color: #e11d48;
 }
 
 /* ==========================================
-   2. 3Dマップセクション（極薄・透明感のある海のグラデーション）
-   - 上から下（180deg）へ優しく変化する非常に淡いアクアトーン
+   3D Map Section (★サイズを80vh → 85vhへ拡大)
 =========================================== */
 .map-section {
   position: relative;
   width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  height: 520px;
-  /* 上（限りなく白に近い水色）から下（ほんのり澄んだ淡いアクアブルー）へのグラデーション */
-  background: linear-gradient(180deg, #f8fafc 0%, #f0fdfa 40%, #e0f2fe 100%);
-  border-top: 1px solid #e0f2fe;
-  border-bottom: 1px solid #bae6fd;
+  height: 85vh;
+  margin-top: 64px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   overflow: hidden;
-  margin-top: 24px;
 }
 
-@media (max-width: 640px) {
-  .map-section {
-    height: 420px;
-  }
+.region-select-wrapper {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 10;
+}
+
+.region-select {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #cbd5e1;
+  padding: 10px 36px 10px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2064748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
 
 #map-canvas-container {
@@ -153,65 +178,39 @@
   height: 100%;
 }
 
-/* 左上オーバーレイ：支援先変更用ドロップダウン */
-.region-select-wrapper {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid #fecdd3;
-  box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.08);
-}
-
-.region-select {
-  background: #ffffff;
-  border: 1px solid #fda4af;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: bold;
-  color: #e11d48;
-  outline: none;
-  cursor: pointer;
-}
-
-/* 右下オーバーレイ：メッセージ ＆ 鶴カウンターカード */
+/* ------------------------------------------
+   メッセージカード
+------------------------------------------- */
 .message-card-overlay {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  z-index: 10;
-  width: calc(100% - 32px);
-  max-width: 320px;
-  background-color: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  padding: 16px;
+  bottom: 24px;
+  right: 24px;
+  left: auto;
+  transform: none;
+  width: 360px;
+  max-width: calc(100vw - 48px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid #cbd5e1;
   border-radius: 16px;
-  border: 1px solid #fecdd3;
-  box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.12);
-  /* メッセージ切替用のアニメーション設定 */
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  opacity: 1;
-  transform: translateY(0);
+  padding: 16px 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10;
 }
 
-/* JSでメッセージ切替時に付与するフェードアウト用クラス */
 .message-card-overlay.is-fading {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(10px);
 }
 
 .card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #fff1f2;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1.5px solid #cbd5e1;
 }
 
 .card-location {
@@ -220,23 +219,208 @@
   color: #e11d48;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
-.card-counter {
+.card-user-id {
   font-size: 11px;
-  font-weight: bold;
+  font-weight: normal;
   color: #64748b;
-}
-
-.card-counter span {
-  color: #e11d48;
-  font-size: 14px;
+  text-align: left;
 }
 
 .card-text {
-  font-size: 13px;
-  color: #334155;
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1e293b;
   font-weight: 500;
+  margin: 0;
+}
+
+/* ==========================================
+   Donate Banner Section
+=========================================== */
+.donate-banner-section {
+  padding: 40px 24px;
+  display: flex;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.btn-donate-large {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  color: #ffffff;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 32px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-donate-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(225, 29, 72, 0.4);
+}
+
+/* ==========================================
+   Modal Style
+=========================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2000;
+}
+
+.modal-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.modal-backdrop.is-open .modal-content {
+  transform: translateY(0);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.donate-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.donate-option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.donate-option-card:hover {
+  border-color: #f43f5e;
+  background-color: #fff1f2;
+}
+
+.option-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.option-info {
+  flex: 1;
+}
+
+.option-title {
+  font-weight: bold;
+  font-size: 15px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.option-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.tag-free {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.tag-direct {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   Responsive (スマホ表示時)
+=========================================== */
+@media (max-width: 768px) {
+  .header-nav {
+    display: none;
+  }
+  
+  .map-section {
+    height: 75vh;
+  }
+
+  .message-card-overlay {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
 }
