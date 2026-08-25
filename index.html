@@ -151,6 +151,7 @@
       border-bottom: 1px solid #ffe4e6;
       margin-bottom: 4px;
       padding-bottom: 12px;
+      cursor: pointer;
     }
 
     .dropdown-item-action:hover {
@@ -159,14 +160,12 @@
 
     /* ==========================================
        2. 3Dマップセクション（背景：極薄・透明感のある海）
-       - 上から下（180deg）へ変化する非常に淡いアクアトーン
     =========================================== */
     .map-section {
       position: relative;
       width: 100vw;
       margin-left: calc(-50vw + 50%);
       height: 520px;
-      /* 上（白に近い水色）から下（極淡いアクアブルー）への上〜下グラデーション */
       background: linear-gradient(180deg, #f8fafc 0%, #f0fdfa 40%, #e0f2fe 100%);
       border-top: 1px solid #e0f2fe;
       border-bottom: 1px solid #bae6fd;
@@ -212,7 +211,7 @@
       cursor: pointer;
     }
 
-    /* 右下オーバーレイ：メッセージカード（鶴カウント表示なし） */
+    /* 右下オーバーレイ：メッセージカード */
     .message-card-overlay {
       position: absolute;
       bottom: 16px;
@@ -226,13 +225,11 @@
       border-radius: 16px;
       border: 1px solid #fecdd3;
       box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.12);
-      /* フェード切替のアニメーション設定 */
       transition: opacity 0.4s ease, transform 0.4s ease;
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* メッセージ切り替え時にCSSで透明化するクラス */
     .message-card-overlay.is-fading {
       opacity: 0;
       transform: translateY(6px);
@@ -286,7 +283,7 @@
         </svg>
       </button>
       <div class="dropdown-menu" id="dropdown-menu">
-        <!-- X投稿リンク（選択中の被災地ハッシュタグを動的に挿入） -->
+        <!-- X投稿用アクション（Safari・携帯アプリ対応版） -->
         <a href="#" 
            target="_blank" 
            rel="noopener noreferrer" 
@@ -336,19 +333,26 @@
   =========================================== -->
   <script>
     /* ------------------------------------------
-       ① ヘッダーのドロップダウンメニュー制御
+       ① ヘッダーのドロップダウンメニュー制御 (Safari対応)
     ------------------------------------------- */
     const menuBtn = document.getElementById('menu-btn');
     const dropdownMenu = document.getElementById('dropdown-menu');
+    
     menuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdownMenu.classList.toggle('is-active');
     });
-    document.addEventListener('click', () => dropdownMenu.classList.remove('is-active'));
+
+    document.addEventListener('click', (e) => {
+      // メニュー外クリックで閉じる
+      if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+        dropdownMenu.classList.remove('is-active');
+      }
+    });
 
 
     /* ------------------------------------------
-       ② X（Twitter）投稿リンクの動的更新処理
+       ② X（Twitter）投稿リンクの動的更新処理 (スマホ・Safari対応)
     ------------------------------------------- */
     const sendMsgLink = document.getElementById('send-message-link');
 
@@ -359,11 +363,20 @@
       };
       
       const targetName = targetNames[targetKey] || "被災地";
-      const hashtags = `つなぐる,${targetName}応援`;
-      const text = encodeURIComponent(`【${targetName}へ応援メッセージを送ろう】\n`);
       
-      sendMsgLink.href = `https://x.com/intent/tweet?text=${text}&hashtags=${hashtags}`;
+      // #つなぐる〇〇（選択中の県名）のみを本文に埋め込み
+      const tweetContent = `【${targetName}へ応援メッセージを送ろう】\n#つなぐる${targetName}`;
+      
+      sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
     }
+
+    sendMsgLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = sendMsgLink.href;
+      if (url && url !== '#') {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
 
 
     /* ------------------------------------------
@@ -423,7 +436,6 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    // 経過時間管理用クロック（端末によるリフレッシュレートの差分を吸収）
     const clock = new THREE.Clock();
 
     // ライティング設定
@@ -509,7 +521,7 @@
         particles.push({
           mesh: particle,
           curve: curve,
-          progress: index * 0.25 // 初期配置のずらし
+          progress: index * 0.25
         });
       });
     }
@@ -598,19 +610,16 @@
 
 
     /* ------------------------------------------
-       ⑦ 描画ループ ＆ リサイズ追従（時間ベース移動へ補正）
+       ⑦ 描画ループ ＆ リサイズ追従（時間ベース移動）
     ------------------------------------------- */
-    // 1周にかける目標秒数（例: 2.5秒で始点から終点へ移動）
     const DURATION_SECONDS = 2.5;
 
     function animate() {
       requestAnimationFrame(animate);
 
-      // 前回のフレームからの経過時間（秒）を取得
       const delta = clock.getDelta();
 
       particles.forEach(p => {
-        // 経過時間に応じて進捗を更新（画面のリフレッシュレートに依存しない）
         p.progress += delta / DURATION_SECONDS;
         if (p.progress > 1) p.progress %= 1;
         
