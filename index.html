@@ -352,7 +352,7 @@
       const targetName = targetNames[targetKey] || "被災地";
       
       // #つなぐる〇〇（選択中の県名）のみを本文に埋め込み
-      const tweetContent = `【${targetName}へ応援メッセージを送ろう】\n#つなぐる${targetName}`;
+      const tweetContent = `#つなぐる${targetName}`;
       
       sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
     }
