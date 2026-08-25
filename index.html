@@ -14,8 +14,6 @@
   <style>
     /* ==========================================
        1. ヘッダーエリア
-       - 画面上部に固定（sticky）
-       - 背景は半透明＋すりガラス効果（backdrop-filter）
     =========================================== */
     .site-header {
       position: sticky;
@@ -32,7 +30,6 @@
       justify-content: space-between;
     }
 
-    /* 左側：ロゴアイコン ＆ ブランド名 */
     .logo-area {
       display: flex;
       align-items: center;
@@ -43,8 +40,8 @@
     .logo-icon {
       width: 36px;
       height: 36px;
-      background-color: #e11d48; /* アクセントの赤 */
-      color: #ffffff;            /* 文字：白 */
+      background-color: #e11d48;
+      color: #ffffff;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -60,7 +57,6 @@
       color: #0f172a;
     }
 
-    /* 中央：主要ナビゲーション（スマホ表示時は非表示） */
     .header-nav {
       display: flex;
       gap: 32px;
@@ -84,7 +80,6 @@
       }
     }
 
-    /* 右側：メニューボタンとドロップダウン */
     .menu-container {
       position: relative;
     }
@@ -144,7 +139,6 @@
       color: #e11d48;
     }
 
-    /* X投稿用のアクションリンク（強調表示） */
     .dropdown-item-action {
       font-weight: bold;
       color: #e11d48;
@@ -159,7 +153,7 @@
     }
 
     /* ==========================================
-       2. 3Dマップセクション（背景：極薄・透明感のある海）
+       2. 3Dマップセクション
     =========================================== */
     .map-section {
       position: relative;
@@ -185,7 +179,6 @@
       cursor: pointer;
     }
 
-    /* 左上オーバーレイ：支援先変更用ドロップダウン */
     .region-select-wrapper {
       position: absolute;
       top: 16px;
@@ -211,7 +204,6 @@
       cursor: pointer;
     }
 
-    /* 右下オーバーレイ：メッセージカード */
     .message-card-overlay {
       position: absolute;
       bottom: 16px;
@@ -283,7 +275,6 @@
         </svg>
       </button>
       <div class="dropdown-menu" id="dropdown-menu">
-        <!-- X投稿用アクション（Safari・携帯アプリ対応版） -->
         <a href="#" 
            target="_blank" 
            rel="noopener noreferrer" 
@@ -303,7 +294,6 @@
   =========================================== -->
   <section id="section-3d-map" class="map-section">
     
-    <!-- 左上：支援先切替ドロップダウン -->
     <div class="region-select-wrapper">
       <select id="region-select" class="region-select">
         <option value="ishikawa">石川県</option>
@@ -311,10 +301,8 @@
       </select>
     </div>
 
-    <!-- 3Dマップの描画用キャンバスコンテナ -->
     <div id="map-canvas-container"></div>
 
-    <!-- 右下：メッセージカード -->
     <div class="message-card-overlay" id="message-card">
       <div class="card-header">
         <div class="card-location">
@@ -344,7 +332,6 @@
     });
 
     document.addEventListener('click', (e) => {
-      // メニュー外クリックで閉じる
       if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
         dropdownMenu.classList.remove('is-active');
       }
@@ -352,7 +339,7 @@
 
 
     /* ------------------------------------------
-       ② X（Twitter）投稿リンクの動的更新処理 (スマホ・Safari対応)
+       ② X（Twitter）投稿リンクの動的更新処理 (#つなぐる〇〇 のみ設定)
     ------------------------------------------- */
     const sendMsgLink = document.getElementById('send-message-link');
 
@@ -438,14 +425,12 @@
 
     const clock = new THREE.Clock();
 
-    // ライティング設定
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
     dirLight.position.set(5, 10, 7);
     scene.add(dirLight);
 
-    // 日本地図（純白）
     const mapGroup = new THREE.Group();
     const mapBase = new THREE.Mesh(
       new THREE.BoxGeometry(7.5, 0.2, 4.5),
@@ -453,7 +438,6 @@
     );
     mapGroup.add(mapBase);
 
-    // 支援対象（赤いメッシュ）
     const targetRegion = new THREE.Mesh(
       new THREE.BoxGeometry(0.9, 0.4, 0.9),
       new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1 })
@@ -468,7 +452,6 @@
     mapGroup.add(targetRegion);
     scene.add(mapGroup);
 
-    // 発信地リスト
     const nationalSources = [
       { id: "Hokkaido", name: "北海道", pos: new THREE.Vector3(2.5, 0.1, -1.5) },
       { id: "Tokyo",    name: "東京都", pos: new THREE.Vector3(1.2, 0.1, 0.4) },
@@ -482,7 +465,6 @@
 
     let interactiveObjects = [];
 
-    // 放物線生成関数
     function createArcRoutes() {
       while(lineGroup.children.length > 0) { lineGroup.remove(lineGroup.children[0]); }
       particles.forEach(p => scene.remove(p.mesh));
@@ -528,7 +510,6 @@
 
     createArcRoutes();
 
-    // 支援先切替イベント
     document.getElementById('region-select').addEventListener('change', (e) => {
       currentTargetKey = e.target.value;
       if (targetPositions[currentTargetKey]) {
@@ -580,7 +561,7 @@
 
 
     /* ------------------------------------------
-       ⑥ 動的データ更新用関数（バックエンド連携用）
+       ⑥ 動的データ更新用関数
     ------------------------------------------- */
     function updateMapData(newTargetKey, newSourcesData, newMessagesData) {
       if (newTargetKey) {
@@ -610,7 +591,7 @@
 
 
     /* ------------------------------------------
-       ⑦ 描画ループ ＆ リサイズ追従（時間ベース移動）
+       ⑦ 描画ループ ＆ リサイズ追従
     ------------------------------------------- */
     const DURATION_SECONDS = 2.5;
 
