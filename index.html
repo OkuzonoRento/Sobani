@@ -362,7 +362,6 @@
       const hashtags = `つなぐる,${targetName}応援`;
       const text = encodeURIComponent(`【${targetName}へ応援メッセージを送ろう】\n`);
       
-      // X投稿用Intent URLをセット
       sendMsgLink.href = `https://x.com/intent/tweet?text=${text}&hashtags=${hashtags}`;
     }
 
@@ -371,14 +370,12 @@
        ③ 支援先（目的地）ごとのメッセージデータ
     ------------------------------------------- */
     const messageDataByTarget = {
-      // 石川県が選択されている場合
       ishikawa: [
         { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「一日も早い復興と、皆様の安全を心よりお祈り申し上げます。みんなで応援しています！」" },
         { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「少しでも力になれれば幸いです。現地で頑張る皆様に届きますように！」" },
         { sourceId: "Hokkaido", location: "北海道からのメッセージ", text: "「北の大地から能登へ。一日も早い復興を心より応援しています！」" },
         { sourceId: "Fukuoka",  location: "福岡県からのメッセージ",   text: "「九州からも温かい気持ちを送ります。一歩ずつ前へ進んでいきましょう。」" }
       ],
-      // 熊本県が選択されている場合
       kumamoto: [
         { sourceId: "Tokyo",    location: "東京都からのメッセージ",   text: "「熊本の皆様へ、温かいご支援の輪が広がりますように。」" },
         { sourceId: "Osaka",    location: "大阪府からのメッセージ",   text: "「関西から元気を送ります！皆様の笑顔が一日も早く戻りますように。」" },
@@ -387,7 +384,6 @@
       ]
     };
 
-    // 現在選択されている支援先
     let currentTargetKey = 'ishikawa';
     let currentMsgIndex = 0;
 
@@ -395,10 +391,8 @@
     const locEl = document.getElementById('msg-location');
     const textEl = document.getElementById('msg-text');
 
-    // 初期状態のXリンク設定
     updateXShareLink(currentTargetKey);
 
-    // メッセージのフェード切替関数
     function updateMessageDisplay(data) {
       cardEl.classList.add('is-fading');
       setTimeout(() => {
@@ -408,7 +402,6 @@
       }, 300);
     }
 
-    // 10秒ごとの自動切替タイマー
     let autoSwitchTimer = setInterval(() => {
       const currentList = messageDataByTarget[currentTargetKey];
       currentMsgIndex = (currentMsgIndex + 1) % currentList.length;
@@ -429,6 +422,9 @@
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
+
+    // 経過時間管理用クロック（端末によるリフレッシュレートの差分を吸収）
+    const clock = new THREE.Clock();
 
     // ライティング設定
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
@@ -513,7 +509,7 @@
         particles.push({
           mesh: particle,
           curve: curve,
-          progress: index * 0.25
+          progress: index * 0.25 // 初期配置のずらし
         });
       });
     }
@@ -527,7 +523,6 @@
         targetRegion.position.copy(targetPositions[currentTargetKey]);
         createArcRoutes();
         
-        // メッセージとX投稿リンクの切り替え
         currentMsgIndex = 0;
         updateMessageDisplay(messageDataByTarget[currentTargetKey][0]);
         updateXShareLink(currentTargetKey);
@@ -603,14 +598,22 @@
 
 
     /* ------------------------------------------
-       ⑦ 描画ループ ＆ リサイズ追従
+       ⑦ 描画ループ ＆ リサイズ追従（時間ベース移動へ補正）
     ------------------------------------------- */
+    // 1周にかける目標秒数（例: 2.5秒で始点から終点へ移動）
+    const DURATION_SECONDS = 2.5;
+
     function animate() {
       requestAnimationFrame(animate);
 
+      // 前回のフレームからの経過時間（秒）を取得
+      const delta = clock.getDelta();
+
       particles.forEach(p => {
-        p.progress += 0.007;
-        if (p.progress > 1) p.progress = 0;
+        // 経過時間に応じて進捗を更新（画面のリフレッシュレートに依存しない）
+        p.progress += delta / DURATION_SECONDS;
+        if (p.progress > 1) p.progress %= 1;
+        
         const point = p.curve.getPoint(p.progress);
         p.mesh.position.copy(point);
       });
