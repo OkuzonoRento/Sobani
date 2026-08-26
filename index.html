@@ -577,8 +577,8 @@
       // GLTF/GLB のロード
       const loader = new THREE.GLTFLoader();
       
-      // データURIまたはパスからロード (ここではファイルパス 'Japan.glb' を指定)
-      loader.load('Japan.glb', (gltf) => {
+      // データURIまたはパスからロード (ここではファイルパス 'models/japan.glb' を指定)
+      loader.load('models/japan.glb', (gltf) => {
         const mapGroup = gltf.scene;
         scene.add(mapGroup);
 
