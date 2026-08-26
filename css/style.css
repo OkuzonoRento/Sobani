@@ -263,12 +263,19 @@ body {
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
-.btn-donate-large:hover {
+.btn-donate-large:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 20px 25px -5px rgba(225, 29, 72, 0.4);
+}
+
+.btn-donate-large:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* ==========================================

@@ -359,7 +359,7 @@
         if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
       });
 
-      /* 不具合報告モーダル ＆ スプレッドシート（GAS）送信処理 (スパム・連打防止付き) */
+      /* 不具合報告モーダル ＆ スプレッドシート（GAS）送信処理 (送信中の誤操作防止仕様) */
       const bugModal = document.getElementById('bug-report-modal');
       const openBugBtn = document.getElementById('open-bug-modal');
       const bugModalClose = document.getElementById('bug-modal-close');
@@ -377,11 +377,15 @@
       }
 
       if (bugModalClose) {
-        bugModalClose.addEventListener('click', () => bugModal.classList.remove('is-open'));
+        bugModalClose.addEventListener('click', () => {
+          if (!isSubmitting) bugModal.classList.remove('is-open');
+        });
       }
 
       bugModal.addEventListener('click', (e) => {
-        if (e.target === bugModal) bugModal.classList.remove('is-open');
+        if (e.target === bugModal && !isSubmitting) {
+          bugModal.classList.remove('is-open');
+        }
       });
 
       bugForm.addEventListener('submit', async (e) => {
@@ -414,10 +418,11 @@
           };
         }
 
-        // 送信処理中のUIロック
+        // 送信処理中のUIロック (ボタン非活性＆閉じるボタン非表示)
         isSubmitting = true;
         bugSubmitBtn.disabled = true;
         bugSubmitBtn.textContent = '送信中...';
+        if (bugModalClose) bugModalClose.style.display = 'none';
 
         try {
           const response = await fetch(GAS_URL, {
@@ -439,11 +444,10 @@
           console.error('送信エラー:', error);
           showResultModal('通信エラーが発生しました。\nインターネット接続をご確認ください。');
         } finally {
-          setTimeout(() => {
-            isSubmitting = false;
-            bugSubmitBtn.disabled = false;
-            bugSubmitBtn.innerHTML = '<span>送信する</span>';
-          }, 5000);
+          isSubmitting = false;
+          bugSubmitBtn.disabled = false;
+          bugSubmitBtn.innerHTML = '<span>送信する</span>';
+          if (bugModalClose) bugModalClose.style.display = 'block';
         }
       });
 
