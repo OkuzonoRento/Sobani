@@ -214,6 +214,14 @@
     </div>
   </div>
 
+  <!-- 送信結果通知用共通モーダル -->
+  <div class="modal-backdrop" id="result-modal">
+    <div class="modal-content result-modal-content">
+      <p class="result-modal-text" id="result-modal-message"></p>
+      <button type="button" class="btn-secondary" id="result-modal-close-btn">閉じる</button>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
@@ -270,6 +278,29 @@
       const modalStep2 = document.getElementById('modal-step-2');
       const optionExternalDonate = document.getElementById('option-external-donate');
       const modalBackBtn = document.getElementById('modal-back-btn');
+
+      /* 送信結果共通モーダル処理 */
+      const resultModal = document.getElementById('result-modal');
+      const resultModalMessage = document.getElementById('result-modal-message');
+      const resultModalCloseBtn = document.getElementById('result-modal-close-btn');
+
+      function showResultModal(msg) {
+        resultModalMessage.textContent = msg;
+        resultModal.classList.add('is-open');
+      }
+
+      function hideResultModal() {
+        resultModal.classList.remove('is-open');
+      }
+
+      if (resultModalCloseBtn) {
+        resultModalCloseBtn.addEventListener('click', hideResultModal);
+      }
+      if (resultModal) {
+        resultModal.addEventListener('click', (e) => {
+          if (e.target === resultModal) hideResultModal();
+        });
+      }
 
       function resetModalSteps() {
         modalStep1.style.display = 'block';
@@ -365,7 +396,7 @@
         const includeEnv = document.getElementById('send-env-check').checked;
 
         if (!description || description.length < 5) {
-          alert('不具合の詳細を5文字以上で入力してください。');
+          showResultModal('不具合の詳細を5文字以上で入力してください。');
           return;
         }
 
@@ -398,15 +429,15 @@
           const resData = await response.json();
 
           if (resData.status === 'success') {
-            alert('不具合報告を送信しました。ご協力ありがとうございます！');
             bugForm.reset();
             bugModal.classList.remove('is-open');
+            showResultModal('不具合報告を送信しました。\nご協力ありがとうございます！');
           } else {
-            alert(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
+            showResultModal(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
           }
         } catch (error) {
           console.error('送信エラー:', error);
-          alert('通信エラーが発生しました。インターネット接続をご確認ください。');
+          showResultModal('通信エラーが発生しました。\nインターネット接続をご確認ください。');
         } finally {
           setTimeout(() => {
             isSubmitting = false;
