@@ -323,7 +323,7 @@
         optionLocalGov.href = data.url;
 
         // ハッシュタグを #そばに○○ に変更
-        const tweetContent = `【${data.name}へ応援メッセージを送ろう】\n#そばに${data.name}`;
+        const tweetContent = `\n#そばに${data.name}`;
         sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
       }
 
