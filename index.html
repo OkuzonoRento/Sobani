@@ -112,15 +112,16 @@
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
         
         <div class="donate-options">
-          <div class="donate-option-card" id="option-ad-donate">
-            <div class="option-icon">📺</div>
+          <!-- 閲覧・利用支援（非アクティブ・準備中仕様） -->
+          <div class="donate-option-card is-disabled" id="option-ad-donate">
+            <div class="option-icon">🌱</div>
             <div class="option-info">
               <div class="option-title">
                 広告を見て寄付する
-                <span class="option-tag tag-free">無料</span>
+                <span class="option-tag tag-preparing">準備中</span>
               </div>
               <p class="option-desc">
-                数十秒の広告を試聴すると、発生した広告収益の一部がそのまま被災地へ寄付されます。
+                広告を試聴すると、発生した広告収益の一部がそのまま被災地へ寄付されます。
               </p>
             </div>
           </div>
@@ -307,11 +308,6 @@
 
       modalBackBtn.addEventListener('click', () => resetModalSteps());
 
-      document.getElementById('option-ad-donate').addEventListener('click', () => {
-        alert('動画広告が再生されます。\n視聴完了後、収益から被災地へ寄付が行われます。ご協力ありがとうございます！');
-        donateModal.classList.remove('is-open');
-      });
-
       const sendMsgLink = document.getElementById('send-message-link');
       const optionLocalGov = document.getElementById('option-local-gov');
       const govTitleText = document.getElementById('gov-title-text');
@@ -362,8 +358,8 @@
 
         if (isSubmitting) return;
 
-        // ⚠️ 発行されたご自身のGASウェブアプリURLを貼り付けてください
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyg0OXlwS9uvu6G6_3n-DYfpfJxXqrhhzhhE55xhOBzXJ1g9q58vMR5LBkBNkg1qzxj/exechttps://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec?page=admin';
+        // 発行されたご自身のGASウェブアプリURL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyg0OXlwS9uvu6G6_3n-DYfpfJxXqrhhzhhE55xhOBzXJ1g9q58vMR5LBkBNkg1qzxj/exec';
 
         const description = document.getElementById('bug-description').value.trim();
         const includeEnv = document.getElementById('send-env-check').checked;
@@ -412,7 +408,6 @@
           console.error('送信エラー:', error);
           alert('通信エラーが発生しました。インターネット接続をご確認ください。');
         } finally {
-          // 送信後5秒間は連打を防ぐためにボタンを無効化
           setTimeout(() => {
             isSubmitting = false;
             bugSubmitBtn.disabled = false;

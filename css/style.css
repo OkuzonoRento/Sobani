@@ -138,7 +138,7 @@ body {
 }
 
 /* ==========================================
-   3D Map Section (★サイズを80vh → 85vhへ拡大)
+   3D Map Section
 =========================================== */
 .map-section {
   position: relative;
@@ -344,7 +344,7 @@ body {
 
 .donate-option-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 16px;
   border: 1px solid #e2e8f0;
@@ -355,7 +355,7 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
-.donate-option-card:hover {
+.donate-option-card:hover:not(.is-disabled) {
   border-color: #f43f5e;
   background-color: #fff1f2;
 }
@@ -376,7 +376,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .option-tag {
@@ -396,10 +396,26 @@ body {
   color: #be123c;
 }
 
+.tag-preparing {
+  background: #94a3b8;
+  color: #ffffff;
+}
+
 .option-desc {
   font-size: 12px;
   color: #64748b;
   line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* 非アクティブ（グレーアウト・選択不可）専用スタイル */
+.donate-option-card.is-disabled {
+  opacity: 0.55;
+  filter: grayscale(80%);
+  cursor: not-allowed !important;
+  pointer-events: none;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 /* ==========================================
