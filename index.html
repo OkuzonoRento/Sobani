@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>つなぐる</title>
+  <title>そばに</title>
   
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
   <link rel="stylesheet" href="css/reset.css">
@@ -35,11 +35,11 @@
   <header class="site-header">
     <a href="#" class="logo-area">
       <div class="logo-icon">折鶴</div>
-      <span class="logo-text">つなぐる</span>
+      <span class="logo-text">そばに</span>
     </a>
     <div class="header-actions">
       <nav class="header-nav">
-        <a href="#" class="nav-link">つなぐるについて</a>
+        <a href="#" class="nav-link">そばにについて</a>
         <a href="#" class="nav-link">応援の仕組み</a>
         <a href="#" class="nav-link">支援実績</a>
       </nav>
@@ -61,7 +61,7 @@
 
           <a href="#" class="dropdown-item">マイページ</a>
           <a href="#" class="dropdown-item">お知らせ</a>
-          <a href="#" class="dropdown-item" id="open-bug-modal">🐛 不具合・エラーの報告</a>
+          <a href="#" class="dropdown-item" id="open-bug-modal">💬 お問い合わせ・不具合報告</a>
         </div>
       </div>
     </div>
@@ -176,41 +176,36 @@
     </div>
   </div>
 
-  <!-- Bug Report Modal -->
+  <!-- Contact & Bug Report Modal -->
   <div class="modal-backdrop" id="bug-report-modal">
     <div class="modal-content">
       <button class="modal-close" id="bug-modal-close">&times;</button>
 
-      <h3 class="modal-title">🐛 不具合・エラーの報告</h3>
-      <p class="modal-subtitle">表示崩れや動作の不具合がありましたらお知らせください。</p>
+      <h3 class="modal-title">💬 お問い合わせ・不具合報告</h3>
+      <p class="modal-subtitle">ご意見や動作の不具合がありましたらお知らせください。</p>
 
-      <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+      <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px; text-align: left;">
         
+        <!-- 1. お問い合わせ内容（入力必須） -->
         <div>
-          <label style="font-size: 12px; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">
-            不具合の内容 <span style="color: #e11d48;">*</span>
+          <label style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 6px;">
+            お問い合わせ内容 <span style="color: #e11d48;">*</span>
           </label>
-          <textarea id="bug-description" required rows="4" placeholder="（例）3Dマップの粒子をタップしてもメッセージが表示されない、画面の文字が重なっている等" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+          <textarea id="bug-description" required rows="5" placeholder="お問い合わせ内容や、発生した不具合の詳細をご入力ください。" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
         </div>
 
-        <div>
-          <label style="font-size: 12px; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">
-            ご連絡先メールアドレス（任意）
+        <!-- 2. 動作環境＋ログ情報の共有チェックボックス -->
+        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #334155; line-height: 1.4;">
+            <input type="checkbox" id="send-env-check" checked style="margin-top: 2px;">
+            <span>
+              <strong>動作環境・アクセスログ情報を共有する</strong><br>
+              <span style="font-size: 11px; color: #64748b;">（選択中の都道府県、OS・ブラウザの種類、画面サイズ等が自動送信され、不具合の調査に役立ちます）</span>
+            </span>
           </label>
-          <input type="email" id="bug-email" placeholder="example@email.com" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
         </div>
 
-        <!-- 自動取得する環境情報（アコーディオン） -->
-        <details style="font-size: 12px; color: #64748b; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-          <summary style="cursor: pointer; font-weight: bold;">自動送信される環境情報（確認する）</summary>
-          <div style="margin-top: 8px; font-family: monospace; font-size: 11px; word-break: break-all;">
-            <p>選択都道府県: <span id="bug-env-pref">-</span></p>
-            <p>UserAgent: <span id="bug-env-ua">-</span></p>
-            <p>画面サイズ: <span id="bug-env-screen">-</span></p>
-          </div>
-        </details>
-
-        <button type="submit" class="btn-donate-large" style="margin-top: 8px; width: 100%; justify-content: center;">
+        <button type="submit" class="btn-donate-large" id="bug-submit-btn" style="margin-top: 4px; width: 100%; justify-content: center;">
           <span>送信する</span>
         </button>
       </form>
@@ -327,7 +322,8 @@
         govDescText.textContent = data.desc;
         optionLocalGov.href = data.url;
 
-        const tweetContent = `【${data.name}へ応援メッセージを送ろう】\n#つなぐる${data.name}`;
+        // ハッシュタグを #そばに○○ に変更
+        const tweetContent = `【${data.name}へ応援メッセージを送ろう】\n#そばに${data.name}`;
         sendMsgLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
       }
 
@@ -337,22 +333,17 @@
         if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
       });
 
-      /* 不具合報告モーダルの制御 */
+      /* お問い合わせ・不具合報告モーダルの制御 */
       const bugModal = document.getElementById('bug-report-modal');
       const openBugBtn = document.getElementById('open-bug-modal');
       const bugModalClose = document.getElementById('bug-modal-close');
       const bugForm = document.getElementById('bug-report-form');
+      const bugSubmitBtn = document.getElementById('bug-submit-btn');
 
       if (openBugBtn) {
         openBugBtn.addEventListener('click', (e) => {
           e.preventDefault();
           dropdownMenu.classList.remove('is-active');
-
-          const activePrefName = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].name : currentTargetKey;
-          document.getElementById('bug-env-pref').textContent = activePrefName || "未選択";
-          document.getElementById('bug-env-ua').textContent = navigator.userAgent;
-          document.getElementById('bug-env-screen').textContent = `${window.innerWidth}x${window.innerHeight}`;
-
           bugModal.classList.add('is-open');
         });
       }
@@ -365,43 +356,59 @@
         if (e.target === bugModal) bugModal.classList.remove('is-open');
       });
 
+      // Cloudflare API へのフォーム送信処理
       bugForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const description = document.getElementById('bug-description').value;
-        const userEmail = document.getElementById('bug-email').value || "未入力";
-        const pref = document.getElementById('bug-env-pref').textContent;
-        const ua = document.getElementById('bug-env-ua').textContent;
-        const screenSize = document.getElementById('bug-env-screen').textContent;
+        const description = document.getElementById('bug-description').value.trim();
+        const includeEnv = document.getElementById('send-env-check').checked;
+
+        if (!description) {
+          alert('お問い合わせ内容を入力してください。');
+          return;
+        }
 
         const payload = {
           description,
-          userEmail,
-          pref,
-          ua,
-          screenSize,
           createdAt: new Date().toISOString()
         };
 
-        console.log('不具合報告データ:', payload);
+        // チェックボックスがオンの場合のみ動作環境ログを送信
+        if (includeEnv) {
+          const activePrefName = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].name : currentTargetKey;
+          payload.env = {
+            pref: activePrefName || "未選択",
+            userAgent: navigator.userAgent,
+            screenSize: `${window.innerWidth}x${window.innerHeight}`
+          };
+        }
 
-        /*
-        // API送信例
+        // 送信ボタンの二重押し防止
+        bugSubmitBtn.disabled = true;
+        bugSubmitBtn.textContent = '送信中...';
+
         try {
-          await fetch('YOUR_API_ENDPOINT', {
+          // Cloudflare Workers の API エンドポイントへ POST 送信
+          const response = await fetch('/api/send-message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-        } catch (error) {
-          alert('送信に失敗しました。時間をおいて再度お試しください。');
-          return;
-        }
-        */
 
-        alert('不具合のご報告ありがとうございます。\n内容を確認の上、改善に努めてまいります。');
-        bugForm.reset();
-        bugModal.classList.remove('is-open');
+          if (response.ok) {
+            alert('お問い合わせを送信しました。ご協力ありがとうございます！');
+            bugForm.reset();
+            bugModal.classList.remove('is-open');
+          } else {
+            alert('送信に失敗しました。時間をおいて再度お試しください。');
+          }
+        } catch (error) {
+          console.error('送信エラー:', error);
+          alert('通信エラーが発生しました。インターネット接続をご確認ください。');
+        } finally {
+          bugSubmitBtn.disabled = false;
+          bugSubmitBtn.innerHTML = '<span>送信する</span>';
+        }
       });
 
       /* メッセージ ＆ タイマー */
@@ -617,7 +624,11 @@
 
         const curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
 
-        const lineGeo = new THREE.BufferGeometry();
+        // 【パフォーマンス改善】頂点を最初に一括生成して使い回す
+        const points = curve.getPoints(50);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        lineGeo.setDrawRange(0, 0); // 初期状態は描画しない
+
         const lineMat = new THREE.LineBasicMaterial({ 
           color: 0xf43f5e, 
           transparent: true, 
@@ -698,6 +709,12 @@
         );
 
         p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
+        
+        // 【パフォーマンス改善】リセット時のみ頂点を再生成
+        const points = p.curve.getPoints(50);
+        p.line.geometry.setFromPoints(points);
+        p.line.geometry.setDrawRange(0, 0);
+
         p.line.userData = { messageData: msg };
         p.hitMesh.userData = { messageData: msg };
 
@@ -818,19 +835,14 @@
             p.line.material.opacity = Math.max(0, 0.8 * (1.0 - p.startProgress));
           }
 
+          // 【パフォーマンス改善】毎フレームジオメトリを再計算せず、描画範囲(setDrawRange)のみ更新
           if (p.state !== 'WAITING') {
-            const tStart = p.startProgress;
-            const tEnd = p.endProgress;
-
-            if (tEnd > tStart) {
-              const pointsCount = Math.max(2, Math.floor(50 * (tEnd - tStart)));
-              const drawPoints = [];
-              for (let i = 0; i < pointsCount; i++) {
-                const t = tStart + (i / (pointsCount - 1)) * (tEnd - tStart);
-                drawPoints.push(p.curve.getPoint(t));
-              }
-              p.line.geometry.setFromPoints(drawPoints);
-            }
+            const totalPoints = 51; // 50分割された点の総数
+            const startIndex = Math.floor(p.startProgress * (totalPoints - 1));
+            const endIndex = Math.ceil(p.endProgress * (totalPoints - 1));
+            const count = Math.max(0, endIndex - startIndex);
+            
+            p.line.geometry.setDrawRange(startIndex, count);
           }
         });
 
@@ -842,9 +854,14 @@
       initArcRoutes();
       animate();
 
+      // 【パフォーマンス改善】リサイズ発火の過度な負荷を防止（デバウンス処理）
+      let resizeTimeout;
       window.addEventListener('resize', () => {
-        fitCameraToMap();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          fitCameraToMap();
+          renderer.setSize(container.clientWidth, container.clientHeight);
+        }, 100);
       });
     });
   </script>
