@@ -186,15 +186,13 @@
 
       <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px; text-align: left;">
         
-        <!-- 不具合の内容（入力必須） -->
         <div>
           <label style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 6px;">
             不具合の詳細 <span style="color: #e11d48;">*</span>
           </label>
-          <textarea id="bug-description" required rows="5" placeholder="どのような操作をした際に不具合が発生したか、具体的にご入力ください。" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+          <textarea id="bug-description" required rows="5" minlength="5" placeholder="どのような操作をした際に不具合が発生したか、具体的にご入力ください（5文字以上）。" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
         </div>
 
-        <!-- 動作環境＋ログ情報の共有チェックボックス -->
         <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
           <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #334155; line-height: 1.4;">
             <input type="checkbox" id="send-env-check" checked style="margin-top: 2px;">
@@ -322,7 +320,6 @@
         govDescText.textContent = data.desc;
         optionLocalGov.href = data.url;
 
-        // ハッシュタグのみをプリセット
         sendMsgLink.href = `https://x.com/intent/tweet?hashtags=${encodeURIComponent(`そばに${data.name}`)}`;
       }
 
@@ -332,12 +329,14 @@
         if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
       });
 
-      /* 不具合報告モーダルの制御 ＆ スプレッドシート（GAS）送信処理 */
+      /* 不具合報告モーダル ＆ スプレッドシート（GAS）送信処理 (スパム・連打防止付き) */
       const bugModal = document.getElementById('bug-report-modal');
       const openBugBtn = document.getElementById('open-bug-modal');
       const bugModalClose = document.getElementById('bug-modal-close');
       const bugForm = document.getElementById('bug-report-form');
       const bugSubmitBtn = document.getElementById('bug-submit-btn');
+
+      let isSubmitting = false; // 二重送信ガード
 
       if (openBugBtn) {
         openBugBtn.addEventListener('click', (e) => {
@@ -355,18 +354,19 @@
         if (e.target === bugModal) bugModal.classList.remove('is-open');
       });
 
-      // スプレッドシートへの不具合報告送信
       bugForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // ⚠️ 発行されたGASのウェブアプリURLを貼り付けてください
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxagFfMhF_ZW3WLVxhJ7A_YNDW_noAg_xxN4HK45B1nqOYuKigthedVDXVcEPCch9gK/exec';
+        if (isSubmitting) return;
+
+        // ⚠️ 発行されたご自身のGASウェブアプリURLを貼り付けてください
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyALNBLY_sutyJlatkKGv3dUYarKCSCChMc6eqcyv0EQosieF_GDl6qzxkUWB3JdDW7/exec';
 
         const description = document.getElementById('bug-description').value.trim();
         const includeEnv = document.getElementById('send-env-check').checked;
 
-        if (!description) {
-          alert('不具合の詳細を入力してください。');
+        if (!description || description.length < 5) {
+          alert('不具合の詳細を5文字以上で入力してください。');
           return;
         }
 
@@ -384,6 +384,8 @@
           };
         }
 
+        // 送信処理中のUIロック
+        isSubmitting = true;
         bugSubmitBtn.disabled = true;
         bugSubmitBtn.textContent = '送信中...';
 
@@ -401,14 +403,18 @@
             bugForm.reset();
             bugModal.classList.remove('is-open');
           } else {
-            alert('送信に失敗しました。時間をおいて再度お試しください。');
+            alert(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
           }
         } catch (error) {
           console.error('送信エラー:', error);
           alert('通信エラーが発生しました。インターネット接続をご確認ください。');
         } finally {
-          bugSubmitBtn.disabled = false;
-          bugSubmitBtn.innerHTML = '<span>送信する</span>';
+          // 送信後5秒間は連打を防ぐためにボタンを無効化
+          setTimeout(() => {
+            isSubmitting = false;
+            bugSubmitBtn.disabled = false;
+            bugSubmitBtn.innerHTML = '<span>送信する</span>';
+          }, 5000);
         }
       });
 
@@ -738,7 +744,7 @@
         }
       });
 
-      /* 3Dレイキャスト（判定ロジック） */
+      /* 3Dレイキャスト */
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
       raycaster.params.Line.threshold = 0.2; 
