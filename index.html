@@ -25,7 +25,10 @@
     }
   </style>
 
+  <!-- Three.js & GLTFLoader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  
   <!-- 都道府県のマスターデータを読み込み -->
   <script src="js/prefectures.js"></script>
 
@@ -112,7 +115,6 @@
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
         
         <div class="donate-options">
-          <!-- 閲覧・利用支援（非アクティブ・準備中仕様） -->
           <div class="donate-option-card is-disabled" id="option-ad-donate">
             <div class="option-icon">🌱</div>
             <div class="option-info">
@@ -189,7 +191,6 @@
       <p class="modal-subtitle">発生した不具合や表示崩れについてお知らせください。</p>
 
       <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px; text-align: left;">
-        
         <div>
           <label style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 6px;">
             不具合の詳細 <span style="color: #e11d48;">*</span>
@@ -225,30 +226,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-      /* 地方・都道府県定義 */
-      const REGION_MAP = {
-        tokyo:    ["東京都"],
-        tohoku:   ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
-        kanto:    ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "神奈川県"],
-        chubu:    ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"],
-        kinki:    ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
-        chugoku:  ["鳥取県", "島根県", "岡山県", "広島県", "山口県"],
-        shikoku:  ["徳島県", "香川県", "愛媛県", "高知県"],
-        kyushu:   ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"]
-      };
-
-      const SOURCE_POSITIONS = {
-        "北海道": new THREE.Vector3(3.8,  0.1, -2.4),
-        "東京都": new THREE.Vector3(1.7,  0.1,  0.6),
-        "神奈川県": new THREE.Vector3(1.7,  0.1,  0.8),
-        "埼玉県": new THREE.Vector3(1.6,  0.1,  0.5),
-        "千葉県": new THREE.Vector3(2.2,  0.1,  0.7),
-        "大阪府": new THREE.Vector3(0.1,  0.1,  0.7),
-        "愛知県": new THREE.Vector3(0.5,  0.1,  0.6),
-        "福岡県": new THREE.Vector3(-2.8, 0.1,  1.4),
-        "広島県": new THREE.Vector3(-1.7, 0.1,  0.6)
-      };
-
       const regionSelect = document.getElementById('region-select');
 
       if (typeof DISPLAY_PREFECTURES !== 'undefined' && Array.isArray(DISPLAY_PREFECTURES)) {
@@ -279,7 +256,6 @@
       const optionExternalDonate = document.getElementById('option-external-donate');
       const modalBackBtn = document.getElementById('modal-back-btn');
 
-      /* 送信結果共通モーダル処理 */
       const resultModal = document.getElementById('result-modal');
       const resultModalMessage = document.getElementById('result-modal-message');
       const resultModalCloseBtn = document.getElementById('result-modal-close-btn');
@@ -293,9 +269,7 @@
         resultModal.classList.remove('is-open');
       }
 
-      if (resultModalCloseBtn) {
-        resultModalCloseBtn.addEventListener('click', hideResultModal);
-      }
+      if (resultModalCloseBtn) resultModalCloseBtn.addEventListener('click', hideResultModal);
       if (resultModal) {
         resultModal.addEventListener('click', (e) => {
           if (e.target === resultModal) hideResultModal();
@@ -359,14 +333,14 @@
         if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
       });
 
-      /* 不具合報告モーダル ＆ スプレッドシート（GAS）送信処理 (送信中の誤操作防止仕様) */
+      /* 不具合報告モーダル処理 */
       const bugModal = document.getElementById('bug-report-modal');
       const openBugBtn = document.getElementById('open-bug-modal');
       const bugModalClose = document.getElementById('bug-modal-close');
       const bugForm = document.getElementById('bug-report-form');
       const bugSubmitBtn = document.getElementById('bug-submit-btn');
 
-      let isSubmitting = false; // 二重送信ガード
+      let isSubmitting = false;
 
       if (openBugBtn) {
         openBugBtn.addEventListener('click', (e) => {
@@ -390,10 +364,8 @@
 
       bugForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         if (isSubmitting) return;
 
-        // 発行されたご自身のGASウェブアプリURL
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyg0OXlwS9uvu6G6_3n-DYfpfJxXqrhhzhhE55xhOBzXJ1g9q58vMR5LBkBNkg1qzxj/exec';
 
         const description = document.getElementById('bug-description').value.trim();
@@ -418,7 +390,6 @@
           };
         }
 
-        // 送信処理中のUIロック (ボタン非活性＆閉じるボタン非表示)
         isSubmitting = true;
         bugSubmitBtn.disabled = true;
         bugSubmitBtn.textContent = '送信中...';
@@ -540,7 +511,8 @@
       const BASE_FOV = 45;
       const camera = new THREE.PerspectiveCamera(BASE_FOV, container.clientWidth / container.clientHeight, 0.1, 1000);
 
-      const CAMERA_POS = new THREE.Vector3(0, 8.6, 9.8);
+      // 俯瞰構図のカメラ設定
+      const CAMERA_POS = new THREE.Vector3(0, 10, 8);
       const CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
       
       camera.position.copy(CAMERA_POS);
@@ -579,27 +551,83 @@
 
       const clock = new THREE.Clock();
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      // ライティング
+      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-      dirLight.position.set(5, 10, 7);
+      dirLight.position.set(5, 12, 8);
       scene.add(dirLight);
 
-      const mapGroup = new THREE.Group();
-      const mapBase = new THREE.Mesh(
-        new THREE.BoxGeometry(10.5, 0.2, 6.3),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 })
-      );
-      mapGroup.add(mapBase);
+      // 都道府県メッシュを保持するオブジェクトマップ
+      const prefectureMeshes = {};
+      const prefPositions = {}; // 各都道府県のワールド座標
 
-      const targetRegion = new THREE.Mesh(
-        new THREE.BoxGeometry(1.2, 0.4, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1 })
-      );
+      // マテリアル定義
+      const defaultMaterial = new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        roughness: 0.5,
+        metalness: 0.1
+      });
 
-      const initialPos = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].pos : { x: -0.6, y: 0.2, z: -0.3 };
-      targetRegion.position.set(initialPos.x, initialPos.y, initialPos.z);
-      mapGroup.add(targetRegion);
-      scene.add(mapGroup);
+      const highlightMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe11d48, // ハイライトカラー
+        roughness: 0.3,
+        metalness: 0.1
+      });
+
+      // GLTF/GLB のロード
+      const loader = new THREE.GLTFLoader();
+      
+      // データURIまたはパスからロード (ここではファイルパス 'Japan.glb' を指定)
+      loader.load('Japan.glb', (gltf) => {
+        const mapGroup = gltf.scene;
+        scene.add(mapGroup);
+
+        mapGroup.traverse((child) => {
+          if (child.isMesh) {
+            child.material = defaultMaterial.clone();
+            
+            // ノード名（例: "Ishikawa", "Tokyo" など）を保持
+            const name = child.name;
+            prefectureMeshes[name] = child;
+
+            // ワールド座標を取得して保持
+            const worldPos = new THREE.Vector3();
+            child.getWorldPosition(worldPos);
+            prefPositions[name] = worldPos;
+          }
+        });
+
+        // ロード完了後に初期選択エリアのハイライトを更新
+        updateHighlightedPrefecture(currentTargetKey);
+        initArcRoutes();
+      }, undefined, (error) => {
+        console.error('GLBモデルの読み込みに失敗しました:', error);
+      });
+
+      function updateHighlightedPrefecture(key) {
+        const prefData = PREFECTURES_DATA[key];
+        if (!prefData) return;
+
+        // 全都道府県をデフォルトカラーに戻す
+        Object.keys(prefectureMeshes).forEach(name => {
+          prefectureMeshes[name].material = defaultMaterial;
+        });
+
+        // 対象の都道府県をハイライト（英文名マッピングなどで合致するものを参照）
+        const englishName = prefData.en || (key.charAt(0).toUpperCase() + key.slice(1));
+        if (prefectureMeshes[englishName]) {
+          prefectureMeshes[englishName].material = highlightMaterial;
+        }
+      }
+
+      function getPrefecturalPosition(prefName) {
+        // 都道府県名（日本語）から位置を取得、またはモデル上の座標から取得
+        if (prefPositions[prefName]) {
+          return prefPositions[prefName].clone();
+        }
+        // マッピングが見つからない場合のフォールバック値
+        return new THREE.Vector3(0, 0.1, 0);
+      }
 
       let particles = [];
       let lineGroup = new THREE.Group();
@@ -649,12 +677,13 @@
         const msg = getAvailableMessage();
         if (!msg) return;
 
-        const currentTarget = targetRegion.position.clone();
+        const targetData = PREFECTURES_DATA[currentTargetKey];
+        const targetEnglishName = targetData ? (targetData.en || 'Ishikawa') : 'Ishikawa';
+        const currentTarget = getPrefecturalPosition(targetEnglishName);
         currentTarget.y += 0.2;
 
-        const startPos = SOURCE_POSITIONS[msg.from] 
-          ? SOURCE_POSITIONS[msg.from].clone() 
-          : new THREE.Vector3(1.0, 0.1, 0.4);
+        const startPos = getPrefecturalPosition(msg.from);
+        startPos.y += 0.1;
 
         const controlPos = new THREE.Vector3(
           (startPos.x + currentTarget.x) / 2,
@@ -734,12 +763,13 @@
         const msg = getAvailableMessage(p);
         if (!msg) return;
 
-        const currentTarget = targetRegion.position.clone();
+        const targetData = PREFECTURES_DATA[currentTargetKey];
+        const targetEnglishName = targetData ? (targetData.en || 'Ishikawa') : 'Ishikawa';
+        const currentTarget = getPrefecturalPosition(targetEnglishName);
         currentTarget.y += 0.2;
 
-        const startPos = SOURCE_POSITIONS[msg.from] 
-          ? SOURCE_POSITIONS[msg.from].clone() 
-          : new THREE.Vector3(1.0, 0.1, 0.4);
+        const startPos = getPrefecturalPosition(msg.from);
+        startPos.y += 0.1;
 
         const controlPos = new THREE.Vector3(
           (startPos.x + currentTarget.x) / 2,
@@ -768,13 +798,10 @@
 
       regionSelect.addEventListener('change', (e) => {
         currentTargetKey = e.target.value;
-        const targetData = PREFECTURES_DATA[currentTargetKey];
-        if (targetData) {
-          targetRegion.position.set(targetData.pos.x, targetData.pos.y, targetData.pos.z);
-          filterMessagesByTarget(currentTargetKey);
-          updateTargetLinks(currentTargetKey);
-          initArcRoutes();
-        }
+        updateHighlightedPrefecture(currentTargetKey);
+        filterMessagesByTarget(currentTargetKey);
+        updateTargetLinks(currentTargetKey);
+        initArcRoutes();
       });
 
       /* 3Dレイキャスト */
@@ -888,7 +915,6 @@
 
       updateTargetLinks(currentTargetKey);
       fetchMessages();
-      initArcRoutes();
       animate();
 
       let resizeTimeout;
