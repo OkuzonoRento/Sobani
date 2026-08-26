@@ -142,8 +142,11 @@ body {
 =========================================== */
 .map-section {
   position: relative;
-  width: 100vw;
-  height: 85vh;
+  width: 100%;
+  /* 画面全体の70%の高さに設定（下の寄付ボタンも画面内に入りやすくなります） */
+  height: 70vh; 
+  min-height: 480px;
+  max-height: 720px; /* 大画面でも間延びしないよう最大高さを制限 */
   margin-top: 64px;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   overflow: hidden;
