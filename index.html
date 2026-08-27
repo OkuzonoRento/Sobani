@@ -1,92 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- 文字コードおよびレスポンシブ表示の設定 -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>そばに</title>
   
-  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- CSSファイルの読み込み（リセットスタイル ⇨ メインスタイル） -->
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/style.css">
   
-  <style>
-    .map-section {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 768 / 500;
-      min-height: 380px;
-      max-height: 650px;
-      overflow: hidden;
-    }
+  <!-- 3Dモデルファイルの事前ロード（パフォーマンス最適化） -->
+  <link rel="preload" href="models/japan.glb" as="fetch" crossorigin="anonymous">
 
-    #map-canvas-container {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
-
-  <!-- Three.js & GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- 外部ライブラリ（Three.js / GLTFLoader）の読み込み -->
+  <script src="js/three.min.js"></script>
+  <script src="js/GLTFLoader.js"></script>
   
-  <!-- 都道府県のマスターデータを読み込み -->
+  <!-- 都道府県データおよびメインロジックJSの読み込み -->
   <script src="js/prefectures.js"></script>
+  <script src="js/app.js" defer></script>
 
+  <!-- Google AdSense広告スクリプト -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous"></script>
-
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- =========================================================
+       ヘッダーセクション（ロゴ、メニューボタン、未読バッジ）
+  ========================================================= -->
   <header class="site-header">
     <a href="#" class="logo-area">
       <div class="logo-icon">折鶴</div>
       <span class="logo-text">そばに</span>
     </a>
     <div class="header-actions">
-      <nav class="header-nav">
-        <a href="#" class="nav-link">そばにについて</a>
-        <a href="#" class="nav-link">応援の仕組み</a>
-        <a href="#" class="nav-link">支援実績</a>
-      </nav>
       <div class="menu-container">
+        <!-- ドロップダウンメニュー開閉ボタン -->
         <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h18"></path>
           </svg>
+          <!-- メニューボタン右上の未読通知バッジ -->
+          <span class="unread-badge menu-unread-badge" id="menu-btn-unread" style="display: none;"></span>
         </button>
+
+        <!-- ヘッダードロップダウンメニュー -->
         <div class="dropdown-menu" id="dropdown-menu">
           <a href="#" target="_blank" rel="noopener noreferrer" class="dropdown-item dropdown-item-action" id="send-message-link">
-            💬 メッセージで応援する
+            メッセージで応援する
           </a>
           <a href="#" class="dropdown-item dropdown-item-action open-donate-modal">
-            ❤️ 寄付で応援する
+            寄付で応援する
           </a>
-
-          <div style="border-top: 1px solid #f1f5f9; margin: 4px 0;"></div>
-
+          <div class="menu-divider"></div>
           <a href="#" class="dropdown-item">マイページ</a>
-          <a href="#" class="dropdown-item">お知らせ</a>
-          <a href="#" class="dropdown-item" id="open-bug-modal">🛠 不具合報告</a>
+          <a href="#" class="dropdown-item dropdown-item-news" id="open-news-modal">
+            <span>お知らせ・ニュース</span>
+            <span class="unread-badge" id="dropdown-news-unread" style="display: none;"></span>
+          </a>
+          <a href="#" class="dropdown-item" id="open-bug-modal">不具合報告</a>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- 3D Map Section -->
+  <!-- =========================================================
+       3Dマップ表示セクション（都道府県選択、Canvas、メッセージカード）
+  ========================================================= -->
   <section id="section-3d-map" class="map-section">
-    
+    <!-- 対象都道府県選択ドロップダウン -->
     <div class="region-select-wrapper">
-      <select id="region-select" class="region-select"></select>
+      <select id="region-select" class="region-select" aria-label="表示対象の都道府県を選択"></select>
     </div>
 
+    <!-- Three.js描画領域 -->
     <div id="map-canvas-container"></div>
 
-    <!-- Message Card -->
+    <!-- 3Dマップ上に重なるリアルタイム応援メッセージカード -->
     <div class="message-card-overlay" id="message-card">
       <div class="card-header">
         <div class="card-location">
-          📍 <span id="msg-location">全国からのメッセージ</span>
+          <span class="location-highlight" id="msg-location">全国</span>
+          <span class="location-suffix">からのメッセージ</span>
           <span id="msg-user-id" class="card-user-id"></span>
         </div>
       </div>
@@ -94,42 +90,80 @@
         「皆様からの温かい応援メッセージをお待ちしております。」
       </p>
     </div>
-
   </section>
 
-  <!-- Donate Banner -->
+  <!-- =========================================================
+       寄付案内バナーセクション
+  ========================================================= -->
   <section class="donate-banner-section">
     <button class="btn-donate-large open-donate-modal">
-      <span>❤️</span>
       <span>被災地を寄付で応援する</span>
     </button>
   </section>
 
-  <!-- Donate Modal -->
-  <div class="modal-backdrop" id="donate-modal">
-    <div class="modal-content">
-      <button class="modal-close" id="modal-close">&times;</button>
+  <!-- =========================================================
+       最新ニュースプレビューセクション（トップ画面表示用）
+  ========================================================= -->
+  <section class="news-preview-section">
+    <div class="section-container">
+      <div class="section-header">
+        <h2 class="section-title">最新のニュース・お知らせ</h2>
+        <button class="btn-text-link" id="open-news-list-btn">一覧を見る →</button>
+      </div>
+      <div class="news-grid" id="news-preview-container"></div>
+    </div>
+  </section>
 
+  <!-- =========================================================
+       ニュース一覧・詳細表示モーダル
+  ========================================================= -->
+  <div class="modal-backdrop" id="news-modal" role="dialog" aria-modal="true">
+    <div class="modal-content news-modal-content">
+      <button class="modal-close" id="news-modal-close" aria-label="閉じる">&times;</button>
+      
+      <!-- ニュース一覧ビュー -->
+      <div id="news-view-list">
+        <h3 class="modal-title">お知らせ・ニュース</h3>
+        <p class="modal-subtitle">「そばに」に関する最新情報・支援実績・運営からのお知らせ</p>
+        <div class="news-list" id="news-full-list"></div>
+      </div>
+
+      <!-- ニュース詳細ビュー -->
+      <div id="news-view-detail" style="display: none;">
+        <button id="news-back-btn" class="modal-back-btn">← 戻る</button>
+        <div class="news-detail-header">
+          <span class="news-tag" id="news-detail-category">カテゴリ</span>
+          <span class="news-date" id="news-detail-date">2026.00.00</span>
+        </div>
+        <h3 class="news-detail-title" id="news-detail-title">タイトル</h3>
+        <div class="news-detail-body" id="news-detail-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       寄付方法選択モーダル（2ステップ構成）
+  ========================================================= -->
+  <div class="modal-backdrop" id="donate-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close" aria-label="閉じる">&times;</button>
+
+      <!-- ステップ1: 支援スタイルの選択 -->
       <div id="modal-step-1">
         <h3 class="modal-title">寄付の方法を選択</h3>
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
         
         <div class="donate-options">
           <div class="donate-option-card is-disabled" id="option-ad-donate">
-            <div class="option-icon">🌱</div>
             <div class="option-info">
               <div class="option-title">
-                広告を見て寄付する
+                閲覧・サイト利用による支援
                 <span class="option-tag tag-preparing">準備中</span>
               </div>
-              <p class="option-desc">
-                広告を試聴すると、発生した広告収益の一部がそのまま被災地へ寄付されます。
-              </p>
             </div>
           </div>
 
           <div class="donate-option-card" id="option-external-donate">
-            <div class="option-icon">🤝</div>
             <div class="option-info">
               <div class="option-title">
                 外部サイトで寄付する
@@ -143,16 +177,14 @@
         </div>
       </div>
 
+      <!-- ステップ2: 具体的な寄付先の選択 -->
       <div id="modal-step-2" style="display: none;">
-        <button id="modal-back-btn" style="font-size: 13px; color: #64748b; margin-bottom: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-          ← 戻る
-        </button>
+        <button id="modal-back-btn" class="modal-back-btn">← 戻る</button>
         <h3 class="modal-title">寄付先の選択</h3>
         <p class="modal-subtitle">支援金を送りたい機関をお選びください</p>
-        
+
         <div class="donate-options">
           <a href="https://www.jrc.or.jp/contribute/" target="_blank" rel="noopener noreferrer" class="donate-option-card">
-            <div class="option-icon">🏥</div>
             <div class="option-info">
               <div class="option-title">
                 日本赤十字社
@@ -165,7 +197,6 @@
           </a>
 
           <a href="#" target="_blank" rel="noopener noreferrer" class="donate-option-card" id="option-local-gov">
-            <div class="option-icon">🏛️</div>
             <div class="option-info">
               <div class="option-title">
                 <span id="gov-title-text">都道府県公式義援金</span>
@@ -178,751 +209,52 @@
           </a>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Bug Report Modal -->
-  <div class="modal-backdrop" id="bug-report-modal">
+  <!-- =========================================================
+       不具合報告モーダル
+  ========================================================= -->
+  <div class="modal-backdrop" id="bug-report-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <button class="modal-close" id="bug-modal-close">&times;</button>
-
-      <h3 class="modal-title">🛠 不具合報告</h3>
+      <button class="modal-close" id="bug-modal-close" aria-label="閉じる">&times;</button>
+      <h3 class="modal-title">不具合報告</h3>
       <p class="modal-subtitle">発生した不具合や表示崩れについてお知らせください。</p>
 
-      <form id="bug-report-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px; text-align: left;">
+      <form id="bug-report-form" class="bug-form">
         <div>
-          <label style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 6px;">
-            不具合の詳細 <span style="color: #e11d48;">*</span>
+          <label for="bug-description" class="form-label">
+            不具合の詳細 <span class="required-mark">*</span>
           </label>
-          <textarea id="bug-description" required rows="5" minlength="5" placeholder="どのような操作をした際に不具合が発生したか、具体的にご入力ください（5文字以上）。" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+          <textarea id="bug-description" required rows="5" minlength="5" placeholder="どのような操作をした際に不具合が発生したか、具体的にご入力ください（5文字以上）。" class="form-textarea"></textarea>
         </div>
 
-        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #334155; line-height: 1.4;">
-            <input type="checkbox" id="send-env-check" checked style="margin-top: 2px;">
+        <div class="env-checkbox-wrapper">
+          <label class="env-checkbox-label">
+            <input type="checkbox" id="send-env-check" checked>
             <span>
               <strong>動作環境・アクセスログ情報を共有する</strong><br>
-              <span style="font-size: 11px; color: #64748b;">（選択中の都道府県、OS・ブラウザの種類、画面サイズ等が自動送信され、不具合の調査に役立ちます）</span>
+              <span class="checkbox-subtext">（選択中の都道府県、OS・ブラウザの種類、画面サイズ等が自動送信され、不具合の調査に役立ちます）</span>
             </span>
           </label>
         </div>
 
-        <button type="submit" class="btn-donate-large" id="bug-submit-btn" style="margin-top: 4px; width: 100%; justify-content: center;">
+        <button type="submit" class="btn-donate-large btn-full-width" id="bug-submit-btn">
           <span>送信する</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 送信結果通知用共通モーダル -->
-  <div class="modal-backdrop" id="result-modal">
+  <!-- =========================================================
+       処理結果（通知メッセージ）表示用ダイアログモーダル
+  ========================================================= -->
+  <div class="modal-backdrop" id="result-modal" role="dialog" aria-modal="true">
     <div class="modal-content result-modal-content">
       <p class="result-modal-text" id="result-modal-message"></p>
       <button type="button" class="btn-secondary" id="result-modal-close-btn">閉じる</button>
     </div>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-
-      const regionSelect = document.getElementById('region-select');
-
-      if (typeof DISPLAY_PREFECTURES !== 'undefined' && Array.isArray(DISPLAY_PREFECTURES)) {
-        DISPLAY_PREFECTURES.forEach(key => {
-          if (PREFECTURES_DATA[key]) {
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = PREFECTURES_DATA[key].name;
-            regionSelect.appendChild(opt);
-          }
-        });
-      }
-
-      let currentTargetKey = (typeof DISPLAY_PREFECTURES !== 'undefined' && DISPLAY_PREFECTURES.length > 0)
-        ? DISPLAY_PREFECTURES[0] 
-        : 'ishikawa';
-      
-      regionSelect.value = currentTargetKey;
-
-      /* UI/Modal イベント */
-      const menuBtn = document.getElementById('menu-btn');
-      const dropdownMenu = document.getElementById('dropdown-menu');
-      const donateModal = document.getElementById('donate-modal');
-      const modalClose = document.getElementById('modal-close');
-      const openDonateBtns = document.querySelectorAll('.open-donate-modal');
-      const modalStep1 = document.getElementById('modal-step-1');
-      const modalStep2 = document.getElementById('modal-step-2');
-      const optionExternalDonate = document.getElementById('option-external-donate');
-      const modalBackBtn = document.getElementById('modal-back-btn');
-
-      const resultModal = document.getElementById('result-modal');
-      const resultModalMessage = document.getElementById('result-modal-message');
-      const resultModalCloseBtn = document.getElementById('result-modal-close-btn');
-
-      function showResultModal(msg) {
-        resultModalMessage.textContent = msg;
-        resultModal.classList.add('is-open');
-      }
-
-      function hideResultModal() {
-        resultModal.classList.remove('is-open');
-      }
-
-      if (resultModalCloseBtn) resultModalCloseBtn.addEventListener('click', hideResultModal);
-      if (resultModal) {
-        resultModal.addEventListener('click', (e) => {
-          if (e.target === resultModal) hideResultModal();
-        });
-      }
-
-      function resetModalSteps() {
-        modalStep1.style.display = 'block';
-        modalStep2.style.display = 'none';
-      }
-
-      menuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('is-active');
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
-          dropdownMenu.classList.remove('is-active');
-        }
-      });
-
-      openDonateBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          if (btn.tagName === 'A') e.preventDefault();
-          resetModalSteps();
-          donateModal.classList.add('is-open');
-          dropdownMenu.classList.remove('is-active');
-        });
-      });
-
-      modalClose.addEventListener('click', () => donateModal.classList.remove('is-open'));
-      donateModal.addEventListener('click', (e) => {
-        if (e.target === donateModal) donateModal.classList.remove('is-open');
-      });
-
-      optionExternalDonate.addEventListener('click', () => {
-        modalStep1.style.display = 'none';
-        modalStep2.style.display = 'block';
-      });
-
-      modalBackBtn.addEventListener('click', () => resetModalSteps());
-
-      const sendMsgLink = document.getElementById('send-message-link');
-      const optionLocalGov = document.getElementById('option-local-gov');
-      const govTitleText = document.getElementById('gov-title-text');
-      const govDescText = document.getElementById('gov-desc-text');
-
-      function updateTargetLinks(targetKey) {
-        const data = PREFECTURES_DATA[targetKey] || PREFECTURES_DATA.ishikawa;
-        govTitleText.textContent = `${data.name}公式義援金`;
-        govDescText.textContent = data.desc;
-        optionLocalGov.href = data.url;
-
-        sendMsgLink.href = `https://x.com/intent/tweet?hashtags=${encodeURIComponent(`そばに${data.name}`)}`;
-      }
-
-      sendMsgLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        const url = sendMsgLink.href;
-        if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
-      });
-
-      /* 不具合報告モーダル処理 */
-      const bugModal = document.getElementById('bug-report-modal');
-      const openBugBtn = document.getElementById('open-bug-modal');
-      const bugModalClose = document.getElementById('bug-modal-close');
-      const bugForm = document.getElementById('bug-report-form');
-      const bugSubmitBtn = document.getElementById('bug-submit-btn');
-
-      let isSubmitting = false;
-
-      if (openBugBtn) {
-        openBugBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          dropdownMenu.classList.remove('is-active');
-          bugModal.classList.add('is-open');
-        });
-      }
-
-      if (bugModalClose) {
-        bugModalClose.addEventListener('click', () => {
-          if (!isSubmitting) bugModal.classList.remove('is-open');
-        });
-      }
-
-      bugModal.addEventListener('click', (e) => {
-        if (e.target === bugModal && !isSubmitting) {
-          bugModal.classList.remove('is-open');
-        }
-      });
-
-      bugForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (isSubmitting) return;
-
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyg0OXlwS9uvu6G6_3n-DYfpfJxXqrhhzhhE55xhOBzXJ1g9q58vMR5LBkBNkg1qzxj/exec';
-
-        const description = document.getElementById('bug-description').value.trim();
-        const includeEnv = document.getElementById('send-env-check').checked;
-
-        if (!description || description.length < 5) {
-          showResultModal('不具合の詳細を5文字以上で入力してください。');
-          return;
-        }
-
-        const payload = {
-          description: description,
-          createdAt: new Date().toISOString()
-        };
-
-        if (includeEnv) {
-          const activePrefName = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].name : currentTargetKey;
-          payload.env = {
-            pref: activePrefName || "未選択",
-            userAgent: navigator.userAgent,
-            screenSize: `${window.innerWidth}x${window.innerHeight}`
-          };
-        }
-
-        isSubmitting = true;
-        bugSubmitBtn.disabled = true;
-        bugSubmitBtn.textContent = '送信中...';
-        if (bugModalClose) bugModalClose.style.display = 'none';
-
-        try {
-          const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
-          });
-
-          const resData = await response.json();
-
-          if (resData.status === 'success') {
-            bugForm.reset();
-            bugModal.classList.remove('is-open');
-            showResultModal('不具合報告を送信しました。\nご協力ありがとうございます！');
-          } else {
-            showResultModal(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
-          }
-        } catch (error) {
-          console.error('送信エラー:', error);
-          showResultModal('通信エラーが発生しました。\nインターネット接続をご確認ください。');
-        } finally {
-          isSubmitting = false;
-          bugSubmitBtn.disabled = false;
-          bugSubmitBtn.innerHTML = '<span>送信する</span>';
-          if (bugModalClose) bugModalClose.style.display = 'block';
-        }
-      });
-
-      /* メッセージ ＆ タイマー */
-      let allMessages = []; 
-      let currentFilteredMessages = []; 
-      let currentMsgIndex = -1;
-      let autoSwitchTimer = null;
-      let routeIntervalTimer = null;
-
-      const cardEl = document.getElementById('message-card');
-      const locEl = document.getElementById('msg-location');
-      const userIdEl = document.getElementById('msg-user-id');
-      const textEl = document.getElementById('msg-text');
-
-      async function fetchMessages() {
-        allMessages = [
-          { sourceId: "Tokyo",    userId: "@taro_123",     from: "東京都", to: "ishikawa", message: "一日も早い復興と、皆様の安全を心よりお祈り申し上げます。" },
-          { sourceId: "Osaka",    userId: "@hanako_osaka", from: "大阪府", to: "ishikawa", message: "少しでも力になれれば幸いです。みんなで応援しています！" },
-          { sourceId: "Fukuoka",  userId: "@fukuoka_ken",  from: "福岡県", to: "ishikawa", message: "九州からもたくさんの元気と支援を送ります！" },
-          { sourceId: "Hokkaido", userId: "@north_user",   from: "北海道", to: "ishikawa", message: "遠くからですが、いつも思っています。頑張ってください！" },
-          { sourceId: "Tokyo2",   userId: "@tokyo_supporter", from: "東京都", to: "ishikawa", message: "みんなで助け合っていきましょう。応援しています！" },
-          { sourceId: "Kanagawa", userId: "@bay_user",     from: "神奈川県", to: "ishikawa", message: "神奈川からも応援のパワーを送ります！" }
-        ];
-
-        filterMessagesByTarget(currentTargetKey);
-      }
-
-      function filterMessagesByTarget(targetKey) {
-        currentFilteredMessages = allMessages.filter(item => item.to === targetKey);
-        currentMsgIndex = -1;
-
-        if (currentFilteredMessages.length > 0) {
-          displayRandomMessage();
-          startAutoSwitchTimer();
-        } else {
-          stopAutoSwitchTimer();
-          updateMessageDisplay({
-            from: "全国",
-            userId: "",
-            message: "皆様からの温かい応援メッセージをお待ちしております。"
-          });
-          clearArcRoutes();
-        }
-      }
-
-      function displayRandomMessage() {
-        if (currentFilteredMessages.length === 0) return;
-
-        let randomIndex;
-        if (currentFilteredMessages.length === 1) {
-          randomIndex = 0;
-        } else {
-          do {
-            randomIndex = Math.floor(Math.random() * currentFilteredMessages.length);
-          } while (randomIndex === currentMsgIndex);
-        }
-        currentMsgIndex = randomIndex;
-        updateMessageDisplay(currentFilteredMessages[currentMsgIndex]);
-      }
-
-      function updateMessageDisplay(data) {
-        cardEl.classList.add('is-fading');
-        setTimeout(() => {
-          locEl.textContent = `${data.from}からのメッセージ`;
-          userIdEl.textContent = data.userId ? data.userId : '';
-          textEl.textContent = `「${data.message}」`;
-          cardEl.classList.remove('is-fading');
-        }, 300);
-      }
-
-      function startAutoSwitchTimer() {
-        stopAutoSwitchTimer();
-        autoSwitchTimer = setInterval(() => {
-          displayRandomMessage();
-        }, 10000);
-      }
-
-      function stopAutoSwitchTimer() {
-        if (autoSwitchTimer) {
-          clearInterval(autoSwitchTimer);
-          autoSwitchTimer = null;
-        }
-      }
-
-      /* Three.js 3D表示 ＆ アニメーション制御 */
-      const container = document.getElementById('map-canvas-container');
-      const scene = new THREE.Scene();
-
-      // BASE_FOVを絞って望遠気味にし、左右の余分な海（空間）を排除
-      const BASE_FOV = 32; 
-      const camera = new THREE.PerspectiveCamera(BASE_FOV, container.clientWidth / container.clientHeight, 0.1, 1000);
-
-      // カメラを少し手前・下に寄せてモデルを画面中央にダイナミックに配置
-      const CAMERA_POS = new THREE.Vector3(1.0, 10.0, 10.0);
-      const CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
-      
-      camera.position.copy(CAMERA_POS);
-      camera.lookAt(CAMERA_TARGET);
-
-      function fitCameraToMap() {
-        const currentWidth = container.clientWidth;
-        const currentHeight = container.clientHeight;
-        const aspect = currentWidth / currentHeight;
-
-        camera.aspect = aspect;
-
-        // 横長画面（PC最大化時）と縦長画面（スマホ時）でカメラ視野を可変させる処理
-        if (aspect < 1.3) {
-          // 画面幅が狭い・スマホ等の場合はマップがはみ出ないようにFOVを拡大
-          camera.fov = BASE_FOV * (1.3 / aspect);
-        } else {
-          // 横長大画面時は標準の狭いFOVを維持して、左右の引き締めを保つ
-          camera.fov = BASE_FOV;
-        }
-
-        camera.updateProjectionMatrix();
-      }
-
-      fitCameraToMap();
-
-      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      container.appendChild(renderer.domElement);
-
-      const clock = new THREE.Clock();
-
-      // ライティング
-      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-      dirLight.position.set(5, 12, 8);
-      scene.add(dirLight);
-
-      // 都道府県メッシュを保持するオブジェクトマップ
-      const prefectureMeshes = {};
-      const prefPositions = {}; // 各都道府県のワールド座標
-
-      // マテリアル定義
-      const defaultMaterial = new THREE.MeshStandardMaterial({
-        color: 0xcccccc,
-        roughness: 0.5,
-        metalness: 0.1
-      });
-
-      const highlightMaterial = new THREE.MeshStandardMaterial({
-        color: 0xe11d48, // ハイライトカラー
-        roughness: 0.3,
-        metalness: 0.1
-      });
-
-      // GLTF/GLB のロード
-      const loader = new THREE.GLTFLoader();
-      
-      // データURIまたはパスからロード (ここではファイルパス 'models/japan.glb' を指定)
-      loader.load('models/japan.glb', (gltf) => {
-        const mapGroup = gltf.scene;
-        scene.add(mapGroup);
-
-        mapGroup.traverse((child) => {
-          if (child.isMesh) {
-            child.material = defaultMaterial.clone();
-            
-            // ノード名（例: "Ishikawa", "Tokyo" など）を保持
-            const name = child.name;
-            prefectureMeshes[name] = child;
-
-            // ワールド座標を取得して保持
-            const worldPos = new THREE.Vector3();
-            child.getWorldPosition(worldPos);
-            prefPositions[name] = worldPos;
-          }
-        });
-
-        // ロード完了後に初期選択エリアのハイライトを更新
-        updateHighlightedPrefecture(currentTargetKey);
-        initArcRoutes();
-      }, undefined, (error) => {
-        console.error('GLBモデルの読み込みに失敗しました:', error);
-      });
-
-      function updateHighlightedPrefecture(key) {
-        const prefData = PREFECTURES_DATA[key];
-        if (!prefData) return;
-
-        // 全都道府県をデフォルトカラーに戻す
-        Object.keys(prefectureMeshes).forEach(name => {
-          prefectureMeshes[name].material = defaultMaterial;
-        });
-
-        // 対象の都道府県をハイライト（英文名マッピングなどで合致するものを参照）
-        const englishName = prefData.en || (key.charAt(0).toUpperCase() + key.slice(1));
-        if (prefectureMeshes[englishName]) {
-          prefectureMeshes[englishName].material = highlightMaterial;
-        }
-      }
-
-      function getPrefecturalPosition(prefName) {
-        // 都道府県名（日本語）から位置を取得、またはモデル上の座標から取得
-        if (prefPositions[prefName]) {
-          return prefPositions[prefName].clone();
-        }
-        // マッピングが見つからない場合のフォールバック値
-        return new THREE.Vector3(0, 0.1, 0);
-      }
-
-      let particles = [];
-      let lineGroup = new THREE.Group();
-      scene.add(lineGroup);
-      let interactiveObjects = [];
-
-      function clearArcRoutes() {
-        if (routeIntervalTimer) {
-          clearInterval(routeIntervalTimer);
-          routeIntervalTimer = null;
-        }
-
-        while (lineGroup.children.length > 0) {
-          const child = lineGroup.children[0];
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) child.material.dispose();
-          lineGroup.remove(child);
-        }
-
-        particles.forEach(p => {
-          if (p.mesh.geometry) p.mesh.geometry.dispose();
-          if (p.mesh.material) p.mesh.material.dispose();
-          scene.remove(p.mesh);
-        });
-
-        particles = [];
-        interactiveObjects = [];
-      }
-
-      function getAvailableMessage(excludeRoute = null) {
-        if (currentFilteredMessages.length === 0) return null;
-
-        const activeRegions = new Set();
-        particles.forEach(p => {
-          if (p !== excludeRoute && p.line.userData && p.line.userData.messageData) {
-            activeRegions.add(p.line.userData.messageData.from);
-          }
-        });
-
-        const available = currentFilteredMessages.filter(msg => !activeRegions.has(msg.from));
-        const pool = available.length > 0 ? available : currentFilteredMessages;
-        const idx = Math.floor(Math.random() * pool.length);
-        return pool[idx];
-      }
-
-      function createSingleRoute() {
-        const msg = getAvailableMessage();
-        if (!msg) return;
-
-        const targetData = PREFECTURES_DATA[currentTargetKey];
-        const targetEnglishName = targetData ? (targetData.en || 'Ishikawa') : 'Ishikawa';
-        const currentTarget = getPrefecturalPosition(targetEnglishName);
-        currentTarget.y += 0.2;
-
-        const startPos = getPrefecturalPosition(msg.from);
-        startPos.y += 0.1;
-
-        const controlPos = new THREE.Vector3(
-          (startPos.x + currentTarget.x) / 2,
-          2.0 + Math.random() * 0.8,
-          (startPos.z + currentTarget.z) / 2
-        );
-
-        const curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
-
-        const points = curve.getPoints(50);
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-        lineGeo.setDrawRange(0, 0);
-
-        const lineMat = new THREE.LineBasicMaterial({ 
-          color: 0xf43f5e, 
-          transparent: true, 
-          opacity: 0.8 
-        });
-        const line = new THREE.Line(lineGeo, lineMat);
-        line.userData = { messageData: msg };
-        lineGroup.add(line);
-        interactiveObjects.push(line);
-
-        const pGeo = new THREE.SphereGeometry(0.12, 16, 16);
-        const pMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 1 });
-        const particle = new THREE.Mesh(pGeo, pMat);
-        particle.visible = false;
-
-        const hitGeo = new THREE.SphereGeometry(0.35, 8, 8);
-        const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-        const hitMesh = new THREE.Mesh(hitGeo, hitMat);
-        hitMesh.userData = { messageData: msg };
-        particle.add(hitMesh);
-        interactiveObjects.push(hitMesh);
-
-        scene.add(particle);
-
-        const routeObj = {
-          mesh: particle,
-          hitMesh: hitMesh,
-          line: line,
-          curve: curve,
-          progress: 0.0,
-          startProgress: 0.0,
-          endProgress: 0.0,
-          drawSpeed: 1.8,
-          startDelay: Math.random() * 2.0,
-          pendingReset: false,
-          state: 'WAITING'
-        };
-
-        particles.push(routeObj);
-      }
-
-      function startRouteIntervalTimer() {
-        if (routeIntervalTimer) clearInterval(routeIntervalTimer);
-
-        routeIntervalTimer = setInterval(() => {
-          if (particles.length === 0) return;
-          const availableRoutes = particles.filter(p => !p.pendingReset);
-          if (availableRoutes.length > 0) {
-            const target = availableRoutes[Math.floor(Math.random() * availableRoutes.length)];
-            target.pendingReset = true;
-          }
-        }, 8000);
-      }
-
-      function initArcRoutes(count = 5) {
-        clearArcRoutes();
-        for (let i = 0; i < count; i++) {
-          createSingleRoute();
-        }
-        startRouteIntervalTimer();
-      }
-
-      function resetSingleRoute(p) {
-        const msg = getAvailableMessage(p);
-        if (!msg) return;
-
-        const targetData = PREFECTURES_DATA[currentTargetKey];
-        const targetEnglishName = targetData ? (targetData.en || 'Ishikawa') : 'Ishikawa';
-        const currentTarget = getPrefecturalPosition(targetEnglishName);
-        currentTarget.y += 0.2;
-
-        const startPos = getPrefecturalPosition(msg.from);
-        startPos.y += 0.1;
-
-        const controlPos = new THREE.Vector3(
-          (startPos.x + currentTarget.x) / 2,
-          2.0 + Math.random() * 0.8,
-          (startPos.z + currentTarget.z) / 2
-        );
-
-        p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
-        
-        const points = p.curve.getPoints(50);
-        p.line.geometry.setFromPoints(points);
-        p.line.geometry.setDrawRange(0, 0);
-
-        p.line.userData = { messageData: msg };
-        p.hitMesh.userData = { messageData: msg };
-
-        p.progress = 0.0;
-        p.startProgress = 0.0;
-        p.endProgress = 0.0;
-        p.startDelay = 0;
-        p.line.material.opacity = 0.8;
-        p.mesh.visible = false;
-        p.pendingReset = false;
-        p.state = 'DRAWING';
-      }
-
-      regionSelect.addEventListener('change', (e) => {
-        currentTargetKey = e.target.value;
-        updateHighlightedPrefecture(currentTargetKey);
-        filterMessagesByTarget(currentTargetKey);
-        updateTargetLinks(currentTargetKey);
-        initArcRoutes();
-      });
-
-      /* 3Dレイキャスト */
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-      raycaster.params.Line.threshold = 0.2; 
-
-      function handlePointerSelect(clientX, clientY) {
-        const rect = renderer.domElement.getBoundingClientRect();
-        
-        mouse.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
-        mouse.y = -((clientY - rect.top) / container.clientHeight) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-        
-        const validObjects = interactiveObjects.filter(obj => {
-          if (obj.parent && obj.parent.isMesh) {
-            return obj.parent.visible;
-          }
-          return obj.visible;
-        });
-
-        const intersects = raycaster.intersectObjects(validObjects, true);
-
-        if (intersects.length > 0) {
-          intersects.sort((a, b) => a.distance - b.distance);
-          
-          let selected = intersects[0].object;
-          if (selected.userData && selected.userData.messageData) {
-            updateMessageDisplay(selected.userData.messageData);
-            startAutoSwitchTimer();
-          }
-        }
-      }
-
-      container.addEventListener('click', (event) => {
-        handlePointerSelect(event.clientX, event.clientY);
-      });
-
-      container.addEventListener('touchstart', (event) => {
-        if (event.touches.length > 0) {
-          const touch = event.touches[0];
-          handlePointerSelect(touch.clientX, touch.clientY);
-        }
-      }, { passive: true });
-
-      /* アニメーションループ */
-      const DURATION_SECONDS = 3.5;
-
-      function animate() {
-        requestAnimationFrame(animate);
-
-        const delta = clock.getDelta();
-
-        particles.forEach(p => {
-          if (p.state === 'WAITING') {
-            p.startDelay -= delta;
-            if (p.startDelay <= 0) {
-              p.state = 'DRAWING';
-            }
-          }
-          else if (p.state === 'DRAWING') {
-            p.mesh.visible = false;
-            p.endProgress += delta * p.drawSpeed;
-
-            if (p.endProgress >= 1.0) {
-              p.endProgress = 1.0;
-              p.state = 'MOVING';
-              p.progress = 0.0;
-              p.mesh.visible = true;
-              p.mesh.position.copy(p.curve.getPoint(0.0));
-            }
-          }
-          else if (p.state === 'MOVING') {
-            p.progress += delta / DURATION_SECONDS;
-
-            if (p.progress >= 1.0) {
-              p.progress = 1.0;
-              if (p.pendingReset) {
-                p.state = 'LEAVING';
-              } else {
-                p.progress = 0.0;
-              }
-            }
-
-            p.mesh.position.copy(p.curve.getPoint(p.progress));
-          }
-          else if (p.state === 'LEAVING') {
-            p.mesh.visible = false;
-            p.startProgress += delta * p.drawSpeed;
-
-            if (p.startProgress >= 1.0) {
-              p.startProgress = 1.0;
-              resetSingleRoute(p);
-            }
-            p.line.material.opacity = Math.max(0, 0.8 * (1.0 - p.startProgress));
-          }
-
-          if (p.state !== 'WAITING') {
-            const totalPoints = 51;
-            const startIndex = Math.floor(p.startProgress * (totalPoints - 1));
-            const endIndex = Math.ceil(p.endProgress * (totalPoints - 1));
-            const count = Math.max(0, endIndex - startIndex);
-            
-            p.line.geometry.setDrawRange(startIndex, count);
-          }
-        });
-
-        renderer.render(scene, camera);
-      }
-
-      updateTargetLinks(currentTargetKey);
-      fetchMessages();
-      animate();
-
-      let resizeTimeout;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          fitCameraToMap();
-          renderer.setSize(container.clientWidth, container.clientHeight);
-        }, 100);
-      });
-    });
-  </script>
 
 </body>
 </html>
