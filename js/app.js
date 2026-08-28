@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
   const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
 
+  // Supabase 設定
+  const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnNwbGR4Znpvc29pcnp4Z2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzAxNDksImV4cCI6MjEwMzEwNjE0OX0.EWKHnjxyCH1GR97bMFe-dB1tLUB7c_fDzPykxA82wvQ';
+  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
   let currentNewsData = [];
   const readNewsIds = new Set();
 
@@ -517,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     7. メッセージデータ管理（GAS_REPORT_URL から取得）
+     7. メッセージデータ管理（Supabase の Retrieved_posts から取得）
   ========================================================= */
   let allMessages = []; 
   let currentFilteredMessages = []; 
@@ -584,24 +589,42 @@ document.addEventListener('DOMContentLoaded', () => {
     return reg ? reg.color : 0xffffff;
   }
 
+  /**
+   * バックエンドが更新している 'Retrieved_posts' テーブルから取得
+   */
   async function fetchMessages() {
     let rawMessages = [];
 
-    try {
-      const response = await fetch(`${GAS_REPORT_URL}?action=getMessages`);
-      const resData = await response.json();
-      if (resData.status === 'success' && Array.isArray(resData.data) && resData.data.length > 0) {
-        rawMessages = resData.data;
+    if (!supabaseClient) {
+      console.warn('Supabase SDK が読み込まれていません。');
+    } else {
+      try {
+        const { data, error } = await supabaseClient
+          .from('Retrieved_posts')
+          .select('*');
+
+        if (error) throw error;
+
+        if (data && Array.isArray(data) && data.length > 0) {
+          rawMessages = data;
+        }
+      } catch (error) {
+        console.warn('Supabase (Retrieved_posts) からの取得エラー:', error.message || error);
+        rawMessages = [];
       }
-    } catch (error) {
-      console.warn('メッセージデータの取得に失敗しました:', error);
-      rawMessages = [];
     }
 
+    // DBのカラム構造 (FromLocation, ToLocation, tweet_id 等) に応じて変換
     allMessages = rawMessages.map(item => {
-      const normalizedSourceId = item.sourceId ? String(item.sourceId).toLowerCase() : 'unknown';
+      const sourceIdVal = item.FromLocation || item.sourceId;
+      const targetIdVal = item.ToLocation || item.to;
+      const normalizedSourceId = sourceIdVal ? String(sourceIdVal).toLowerCase() : 'unknown';
+
       return {
-        ...item,
+        id: item.tweet_id || item.id,
+        to: targetIdVal ? String(targetIdVal).toLowerCase() : '',
+        userId: item.user_id || item.username || '',
+        message: item.text || item.message || '被災地を応援しています！',
         sourceId: normalizedSourceId,
         regionId: getRegionIdBySourceId(normalizedSourceId),
         from: getPrefecturalInfo(normalizedSourceId).name
