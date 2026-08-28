@@ -4,7 +4,7 @@
 // =========================================================
 const ALL_PREFECTURES = [
   "fukui",
-  "mie","nara",
+  "mie","nara","kumamoto"
 ];
 
 // 表示対象の都道府県キー設定（全県対象にする場合は ALL_PREFECTURES を指定）
