@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateMessageDisplay({
         from: "全国",
         userId: "",
-        message: "現在応援メッセージはありません。"
+        message: "温かい応援をお待ちしております。"
       });
       clearArcRoutes();
     }
@@ -718,7 +718,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 prefPositions[child.name] = worldPos;
               }
             });
-            // モデルが読み込まれた直後に即座に強調表示を適用する
             updateHighlightedPrefecture(currentTargetKey);
             resolve();
           },
