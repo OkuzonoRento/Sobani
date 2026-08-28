@@ -3,13 +3,8 @@
 // 画面上のドロップダウンやランダム選択の全対象とする場合はこちらを使用
 // =========================================================
 const ALL_PREFECTURES = [
-  "hokkaido", "aomori", "iwate", "miyagi", "akita", "yamagata", "fukushima",
-  "ibaraki", "tochigi", "gunma", "saitama", "chiba", "tokyo", "kanagawa",
-  "niigata", "toyama", "ishikawa", "fukui", "yamanashi", "nagano", "gifu", "shizuoka", "aichi",
-  "mie", "shiga", "kyoto", "osaka", "hyogo", "nara", "wakayama",
-  "tottori", "shimane", "okayama", "hiroshima", "yamaguchi",
-  "tokushima", "kagawa", "ehime", "kochi",
-  "fukuoka", "saga", "nagasaki", "kumamoto", "oita", "miyazaki", "kagoshima", "okinawa"
+  "fukui",
+  "mie","nara",
 ];
 
 // 表示対象の都道府県キー設定（全県対象にする場合は ALL_PREFECTURES を指定）
@@ -275,3 +270,65 @@ const UNKNOWN_POINT = {
   name: "どこか",
   pos: { x: -1.8, y: 0.1, z: -0.8 }
 };
+
+// =========================================================
+// 都道府県表記変換マッピングおよび正規化関数
+// =========================================================
+const KANJI_TO_ID_MAP = {
+  '北海道': 'hokkaido',
+  '青森': 'aomori', '青森県': 'aomori',
+  '岩手': 'iwate', '岩手県': 'iwate',
+  '宮城': 'miyagi', '宮城県': 'miyagi',
+  '秋田': 'akita', '秋田県': 'akita',
+  '山形': 'yamagata', '山形県': 'yamagata',
+  '福島': 'fukushima', '福島県': 'fukushima',
+  '茨城': 'ibaraki', '茨城県': 'ibaraki',
+  '栃木': 'tochigi', '栃木県': 'tochigi',
+  '群馬': 'gunma', '群馬県': 'gunma',
+  '埼玉': 'saitama', '埼玉県': 'saitama',
+  '千葉': 'chiba', '千葉県': 'chiba',
+  '東京': 'tokyo', '東京都': 'tokyo',
+  '神奈川': 'kanagawa', '神奈川県': 'kanagawa',
+  '新潟': 'niigata', '新潟県': 'niigata',
+  '富山': 'toyama', '富山県': 'toyama',
+  '石川': 'ishikawa', '石川県': 'ishikawa',
+  '福井': 'fukui', '福井県': 'fukui',
+  '山梨': 'yamanashi', '山梨県': 'yamanashi',
+  '長野': 'nagano', '長野県': 'nagano',
+  '岐阜': 'gifu', '岐阜県': 'gifu',
+  '静岡': 'shizuoka', '静岡県': 'shizuoka',
+  '愛知': 'aichi', '愛知県': 'aichi',
+  '三重': 'mie', '三重県': 'mie',
+  '滋賀': 'shiga', '滋賀県': 'shiga',
+  '京都': 'kyoto', '京都府': 'kyoto',
+  '大阪': 'osaka', '大阪府': 'osaka',
+  '兵庫': 'hyogo', '兵庫県': 'hyogo',
+  '奈良': 'nara', '奈良県': 'nara',
+  '和歌山': 'wakayama', '和歌山県': 'wakayama',
+  '鳥取': 'tottori', '鳥取県': 'tottori',
+  '島根': 'shimane', '島根県': 'shimane',
+  '岡山': 'okayama', '岡山県': 'okayama',
+  '広島': 'hiroshima', '広島県': 'hiroshima',
+  '山口': 'yamaguchi', '山口県': 'yamaguchi',
+  '徳島': 'tokushima', '徳島県': 'tokushima',
+  '香川': 'kagawa', '香川県': 'kagawa',
+  '愛媛': 'ehime', '愛媛県': 'ehime',
+  '高知': 'kochi', '高知県': 'kochi',
+  '福岡': 'fukuoka', '福岡県': 'fukuoka',
+  '佐賀': 'saga', '佐賀県': 'saga',
+  '長崎': 'nagasaki', '長崎県': 'nagasaki',
+  '熊本': 'kumamoto', '熊本県': 'kumamoto',
+  '大分': 'oita', '大分県': 'oita',
+  '宮崎': 'miyazaki', '宮崎県': 'miyazaki',
+  '鹿児島': 'kagoshima', '鹿児島県': 'kagoshima',
+  '沖縄': 'okinawa', '沖縄県': 'okinawa'
+};
+
+/**
+ * 任意の文字列（漢字・アルファベット）を小文字IDへ正規化
+ */
+function normalizeToPrefectureId(val) {
+  if (!val) return 'unknown';
+  const cleanVal = String(val).trim();
+  return KANJI_TO_ID_MAP[cleanVal] || cleanVal.toLowerCase();
+}

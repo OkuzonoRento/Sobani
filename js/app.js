@@ -17,7 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Supabase 設定
   const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnNwbGR4Znpvc29pcnp4Z2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzAxNDksImV4cCI6MjEwMzEwNjE0OX0.EWKHnjxyCH1GR97bMFe-dB1tLUB7c_fDzPykxA82wvQ';
-  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  
+  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  }) : null;
 
   let currentNewsData = [];
   const readNewsIds = new Set();
@@ -181,13 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const shareUrl = encodeURIComponent(window.location.href);
 
-    // 【1】メッセージ応援用：ハッシュタグ「#そばに〇〇（『県』を除外）」※URL除外
     const prefNameCleaned = data.name.replace(/県$/, '');
     const msgHashtag = encodeURIComponent(`そばに${prefNameCleaned}`);
     const msgPromptText = encodeURIComponent(`${data.name}へ応援メッセージを送ろう！\n`);
     sendMsgLink.href = `https://x.com/intent/tweet?hashtags=${msgHashtag}&text=${msgPromptText}`;
 
-    // 【2】SNS共有モーダル用：専用テキスト ＋ ハッシュタグ「#そばに」＋ URL
     const shareHashtag = encodeURIComponent('そばに');
     const shareText = encodeURIComponent(`被災地を応援するプラットフォーム「そばに」で${data.name}を応援しています！\n`);
     if (shareTwitterBtn) {
@@ -195,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 「メッセージで応援する」クリック制御
   if (sendMsgLink) {
     sendMsgLink.addEventListener('click', (e) => {
       e.preventDefault();
@@ -238,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // URLをクリップボードにコピー
   if (shareCopyBtn) {
     shareCopyBtn.addEventListener('click', async () => {
       const url = window.location.href;
@@ -246,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(url);
         } else {
-          // クリップボードAPIが使えない場合のフォールバック
           const textArea = document.createElement("textarea");
           textArea.value = url;
           textArea.style.position = "fixed";
@@ -542,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    const searchKey = String(identifier).toLowerCase();
+    const searchKey = normalizeToPrefectureId(identifier);
     let matchedKey = PREFECTURES_DATA[searchKey] ? searchKey : null;
     let matchedData = matchedKey ? PREFECTURES_DATA[searchKey] : null;
 
@@ -589,14 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return reg ? reg.color : 0xffffff;
   }
 
-  /**
-   * バックエンドが更新している 'Retrieved_posts' テーブルから取得
-   */
   async function fetchMessages() {
     let rawMessages = [];
 
     if (!supabaseClient) {
-      console.warn('Supabase SDK が読み込まれていません。');
+      console.warn('Supabase SDK が初期化されていません。');
     } else {
       try {
         const { data, error } = await supabaseClient
@@ -607,29 +605,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data && Array.isArray(data) && data.length > 0) {
           rawMessages = data;
+          console.log('Supabaseからのデータ取得成功:', rawMessages.length, '件');
+          console.table(rawMessages); 
         }
       } catch (error) {
-        console.warn('Supabase (Retrieved_posts) からの取得エラー:', error.message || error);
+        console.warn('Supabase (Retrieved_posts) 取得エラー:', error.message || error);
         rawMessages = [];
       }
     }
 
-    // DBのカラム構造 (FromLocation, ToLocation, tweet_id 等) に応じて変換
-    allMessages = rawMessages.map(item => {
-      const sourceIdVal = item.FromLocation || item.sourceId;
-      const targetIdVal = item.ToLocation || item.to;
-      const normalizedSourceId = sourceIdVal ? String(sourceIdVal).toLowerCase() : 'unknown';
+    allMessages = [];
 
-      return {
-        id: item.tweet_id || item.id,
-        to: targetIdVal ? String(targetIdVal).toLowerCase() : '',
-        userId: item.user_id || item.username || '',
-        message: item.text || item.message || '被災地を応援しています！',
-        sourceId: normalizedSourceId,
-        regionId: getRegionIdBySourceId(normalizedSourceId),
-        from: getPrefecturalInfo(normalizedSourceId).name
-      };
+    rawMessages.forEach(item => {
+      // --- 送信元 (FromLocation) の展開 ---
+      let rawFromList = [item.FromLocation || item.sourceId];
+      if (typeof rawFromList[0] === 'string' && rawFromList[0].startsWith('[')) {
+        try {
+          const parsed = JSON.parse(rawFromList[0]);
+          if (Array.isArray(parsed) && parsed.length > 0) rawFromList = parsed;
+        } catch (e) { /* 解析失敗時はそのまま */ }
+      }
+
+      // --- 宛先 (ToLocation) の展開 ---
+      let rawToList = [item.ToLocation || item.to];
+      if (typeof rawToList[0] === 'string' && rawToList[0].startsWith('[')) {
+        try {
+          const parsed = JSON.parse(rawToList[0]);
+          if (Array.isArray(parsed) && parsed.length > 0) rawToList = parsed;
+        } catch (e) { /* 解析失敗時はそのまま */ }
+      }
+
+      // 複数宛先・送信元がある場合はそれぞれ展開してメッセージを追加
+      rawToList.forEach(rawTo => {
+        rawFromList.forEach(rawFrom => {
+          const normalizedSourceId = normalizeToPrefectureId(rawFrom);
+          const normalizedTargetId = normalizeToPrefectureId(rawTo);
+
+          allMessages.push({
+            id: item.tweet_id || item.id,
+            to: normalizedTargetId,
+            userId: item.author || item.user_id || item.username || '',
+            message: item.text || item.message || '被災地を応援しています！',
+            sourceId: normalizedSourceId,
+            regionId: getRegionIdBySourceId(normalizedSourceId),
+            from: getPrefecturalInfo(normalizedSourceId).name
+          });
+        });
+      });
     });
+
+    console.log('アプリ用に整形・マッピングした全メッセージデータ:', allMessages);
 
     filterMessagesByTarget(currentTargetKey);
   }
