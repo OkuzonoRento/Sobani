@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateMessageDisplay({
         from: "全国",
         userId: "",
-        message: "温かい応援をお待ちしております。"
+        message: "皆様からの温かい応援メッセージをお待ちしております"
       });
       clearArcRoutes();
     }
