@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- 文字コードおよびレスポンシブ表示の設定 -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>そばに</title>
   
-  <!-- CSSファイルの読み込み（リセットスタイル ⇨ メインスタイル） -->
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/style.css">
   
-  <!-- 3Dモデルファイルの事前ロード（パフォーマンス最適化） -->
   <link rel="preload" href="models/japan.glb" as="fetch" crossorigin="anonymous">
 
-  <!-- 外部ライブラリ（Three.js / GLTFLoader）の読み込み -->
-  <script src="js/three.min.js"></script>
-  <script src="js/GLTFLoader.js"></script>
+  <script src="js/three.min.js" defer></script>
+  <script src="js/GLTFLoader.js" defer></script>
   
-  <!-- 都道府県データおよびメインロジックJSの読み込み -->
-  <script src="js/prefectures.js"></script>
+  <script src="js/prefectures.js" defer></script>
   <script src="js/app.js" defer></script>
 
-  <!-- Google AdSense広告スクリプト -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -36,12 +30,10 @@
     </a>
     <div class="header-actions">
       <div class="menu-container">
-        <!-- ドロップダウンメニュー開閉ボタン -->
         <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h18"></path>
           </svg>
-          <!-- メニューボタン右上の未読通知バッジ -->
           <span class="unread-badge menu-unread-badge" id="menu-btn-unread" style="display: none;"></span>
         </button>
 
@@ -54,7 +46,8 @@
             寄付で応援する
           </a>
           <div class="menu-divider"></div>
-          <a href="#" class="dropdown-item">マイページ</a>
+          <!-- マイページの位置を「SNSで広める」に変更 -->
+          <a href="#" class="dropdown-item" id="open-share-modal">SNSで広める</a>
           <a href="#" class="dropdown-item dropdown-item-news" id="open-news-modal">
             <span>お知らせ・ニュース</span>
             <span class="unread-badge" id="dropdown-news-unread" style="display: none;"></span>
@@ -66,18 +59,15 @@
   </header>
 
   <!-- =========================================================
-       3Dマップ表示セクション（都道府県選択、Canvas、メッセージカード）
+       3Dマップ表示セクション
   ========================================================= -->
   <section id="section-3d-map" class="map-section">
-    <!-- 対象都道府県選択ドロップダウン -->
     <div class="region-select-wrapper">
       <select id="region-select" class="region-select" aria-label="表示対象の都道府県を選択"></select>
     </div>
 
-    <!-- Three.js描画領域 -->
     <div id="map-canvas-container"></div>
 
-    <!-- 3Dマップ上に重なるリアルタイム応援メッセージカード -->
     <div class="message-card-overlay" id="message-card">
       <div class="card-header">
         <div class="card-location">
@@ -102,7 +92,7 @@
   </section>
 
   <!-- =========================================================
-       最新ニュースプレビューセクション（トップ画面表示用）
+       最新ニュースプレビューセクション
   ========================================================= -->
   <section class="news-preview-section">
     <div class="section-container">
@@ -115,20 +105,49 @@
   </section>
 
   <!-- =========================================================
+       SNS共有モーダル（新規追加）
+  ========================================================= -->
+  <div class="modal-backdrop" id="share-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="share-modal-close" aria-label="閉じる">&times;</button>
+      <h3 class="modal-title">SNSで広める</h3>
+      <p class="modal-subtitle">「そばに」の取り組みをSNSでシェアして応援の輪を広げましょう。</p>
+      
+      <div class="donate-options">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="donate-option-card" id="share-twitter-btn">
+          <div class="option-info">
+            <div class="option-title">
+              X（旧Twitter）で共有
+            </div>
+            <p class="option-desc">選択中の地域のハッシュタグとリンクを付けてポストします。</p>
+          </div>
+        </a>
+
+        <div class="donate-option-card" id="share-copy-btn" style="cursor: pointer;">
+          <div class="option-info">
+            <div class="option-title">
+              URLをコピー
+            </div>
+            <p class="option-desc">サイトのURLをクリップボードにコピーして共有します。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
        ニュース一覧・詳細表示モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="news-modal" role="dialog" aria-modal="true">
     <div class="modal-content news-modal-content">
       <button class="modal-close" id="news-modal-close" aria-label="閉じる">&times;</button>
       
-      <!-- ニュース一覧ビュー -->
       <div id="news-view-list">
         <h3 class="modal-title">お知らせ・ニュース</h3>
         <p class="modal-subtitle">「そばに」に関する最新情報・支援実績・運営からのお知らせ</p>
         <div class="news-list" id="news-full-list"></div>
       </div>
 
-      <!-- ニュース詳細ビュー -->
       <div id="news-view-detail" style="display: none;">
         <button id="news-back-btn" class="modal-back-btn">← 戻る</button>
         <div class="news-detail-header">
@@ -142,13 +161,12 @@
   </div>
 
   <!-- =========================================================
-       寄付方法選択モーダル（2ステップ構成）
+       寄付方法選択モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="donate-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button class="modal-close" id="modal-close" aria-label="閉じる">&times;</button>
 
-      <!-- ステップ1: 支援スタイルの選択 -->
       <div id="modal-step-1">
         <h3 class="modal-title">寄付の方法を選択</h3>
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
@@ -177,7 +195,6 @@
         </div>
       </div>
 
-      <!-- ステップ2: 具体的な寄付先の選択 -->
       <div id="modal-step-2" style="display: none;">
         <button id="modal-back-btn" class="modal-back-btn">← 戻る</button>
         <h3 class="modal-title">寄付先の選択</h3>
@@ -247,7 +264,7 @@
   </div>
 
   <!-- =========================================================
-       処理結果（通知メッセージ）表示用ダイアログモーダル
+       処理結果表示用ダイアログモーダル
   ========================================================= -->
   <div class="modal-backdrop" id="result-modal" role="dialog" aria-modal="true">
     <div class="modal-content result-modal-content">

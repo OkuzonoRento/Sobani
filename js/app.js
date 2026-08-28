@@ -2,10 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================================================
      1. 定数・設定値
   ========================================================= */
-  // 都道府県メッシュが選択時に上に浮かび上がるY軸量
   const MESH_ELEVATION_Y = 0.2;
 
-  // アーカールート描画・パーティクル制御用パラメータ
   const ROUTE_CONFIG = {
     Y_OFFSET: 0.3,
     TARGET_Y_OFFSET: -0.1,
@@ -13,17 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ARCH_VARIANCE: 0.6
   };
 
-  // Google Apps Script (GAS) API エンドポイントURL（個別設定）
-  const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec'; // お知らせ用
-  const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec'; // 報告・メッセージ用
+  const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
+  const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
 
-  // ニュース一覧のデータ保持用配列（初期値は空）
   let currentNewsData = [];
-
-  // 既読管理用Set
   const readNewsIds = new Set();
 
-  // 地方区分の定義
   const REGION_DEFINITIONS = [
     { id: 'kyushu',   name: '九州・沖縄',   color: 0xff6b6b, keys: ['fukuoka', 'saga', 'nagasaki', 'kumamoto', 'oita', 'miyazaki', 'kagoshima', 'okinawa'] },
     { id: 'shikoku',  name: '四国',         color: 0xff922b, keys: ['tokushima', 'kagawa', 'ehime', 'kochi'] },
@@ -58,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const optionLocalGov = document.getElementById('option-local-gov');
   const govTitleText = document.getElementById('gov-title-text');
   const govDescText = document.getElementById('gov-desc-text');
+
+  // SNS共有モーダル関連
+  const shareModal = document.getElementById('share-modal');
+  const openShareModalBtn = document.getElementById('open-share-modal');
+  const shareModalClose = document.getElementById('share-modal-close');
+  const shareTwitterBtn = document.getElementById('share-twitter-btn');
+  const shareCopyBtn = document.getElementById('share-copy-btn');
 
   const bugModal = document.getElementById('bug-report-modal');
   const openBugBtn = document.getElementById('open-bug-modal');
@@ -165,24 +165,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
   modalBackBtn.addEventListener('click', resetModalSteps);
 
+  /**
+   * 都道府県選択に応じた各種動的リンクの更新処理
+   */
   function updateTargetLinks(targetKey) {
     const data = PREFECTURES_DATA[targetKey] || PREFECTURES_DATA.ishikawa;
     govTitleText.textContent = `${data.name}公式義援金`;
     govDescText.textContent = data.desc;
     optionLocalGov.href = data.url;
-    sendMsgLink.href = `https://x.com/intent/tweet?hashtags=${encodeURIComponent(`そばに${data.name}`)}`;
+
+    const shareUrl = encodeURIComponent(window.location.href);
+
+    // 【1】メッセージ応援用：ハッシュタグ「#そばに〇〇（『県』を除外）」※URL除外
+    const prefNameCleaned = data.name.replace(/県$/, '');
+    const msgHashtag = encodeURIComponent(`そばに${prefNameCleaned}`);
+    const msgPromptText = encodeURIComponent(`${data.name}へ応援メッセージを送ろう！\n`);
+    sendMsgLink.href = `https://x.com/intent/tweet?hashtags=${msgHashtag}&text=${msgPromptText}`;
+
+    // 【2】SNS共有モーダル用：専用テキスト ＋ ハッシュタグ「#そばに」＋ URL
+    const shareHashtag = encodeURIComponent('そばに');
+    const shareText = encodeURIComponent(`被災地を応援するプラットフォーム「そばに」で${data.name}を応援しています！\n`);
+    if (shareTwitterBtn) {
+      shareTwitterBtn.href = `https://x.com/intent/tweet?hashtags=${shareHashtag}&url=${shareUrl}&text=${shareText}`;
+    }
   }
 
-  sendMsgLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    const url = sendMsgLink.href;
-    if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
-  });
+  // 「メッセージで応援する」クリック制御
+  if (sendMsgLink) {
+    sendMsgLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = sendMsgLink.href;
+      if (url && url !== '#') {
+        dropdownMenu.classList.remove('is-active');
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
+  }
+
+  /* =========================================================
+     4-B. SNS共有モーダル制御
+  ========================================================= */
+  if (openShareModalBtn) {
+    openShareModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dropdownMenu.classList.remove('is-active');
+      shareModal.classList.add('is-open');
+    });
+  }
+
+  if (shareModalClose) {
+    shareModalClose.addEventListener('click', () => {
+      shareModal.classList.remove('is-open');
+    });
+  }
+
+  if (shareModal) {
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) {
+        shareModal.classList.remove('is-open');
+      }
+    });
+  }
+
+  if (shareTwitterBtn) {
+    shareTwitterBtn.addEventListener('click', () => {
+      shareModal.classList.remove('is-open');
+    });
+  }
+
+  // URLをクリップボードにコピー
+  if (shareCopyBtn) {
+    shareCopyBtn.addEventListener('click', async () => {
+      const url = window.location.href;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          // クリップボードAPIが使えない場合のフォールバック
+          const textArea = document.createElement("textarea");
+          textArea.value = url;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+        }
+        shareModal.classList.remove('is-open');
+        showResultModal('URLをクリップボードにコピーしました！');
+      } catch (err) {
+        console.error('URLコピー失敗:', err);
+        showResultModal('URLのコピーに失敗しました。');
+      }
+    });
+  }
 
   /* =========================================================
      5. ニュース機能（GAS_NEWS_URL から取得）
   ========================================================= */
-
   if (typeof readNewsIds !== 'undefined' && readNewsIds instanceof Set) {
     const savedReadIds = JSON.parse(localStorage.getItem('readNewsIds') || '[]');
     savedReadIds.forEach(id => readNewsIds.add(String(id)));
@@ -199,7 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // お知らせ用GAS URLから通信
   async function fetchNewsData() {
     try {
       const response = await fetch(`${GAS_NEWS_URL}?action=getNews`, {
@@ -504,7 +584,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return reg ? reg.color : 0xffffff;
   }
 
-  // 報告・メッセージ用GAS URLから取得
   async function fetchMessages() {
     let rawMessages = [];
 
@@ -622,10 +701,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const highlightMaterial = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3, metalness: 0.1 });
   const sharedParticleGeo = new THREE.SphereGeometry(0.12, 16, 16);
 
-  const loader = new THREE.GLTFLoader();
-
-  function loadJapanModel(retries = 3) {
+  function loadJapanModelAsync(retries = 3) {
     return new Promise((resolve, reject) => {
+      const loader = new THREE.GLTFLoader();
       const attempt = (remaining) => {
         loader.load(
           'models/japan.glb',
@@ -640,13 +718,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 prefPositions[child.name] = worldPos;
               }
             });
+            // モデルが読み込まれた直後に即座に強調表示を適用する
+            updateHighlightedPrefecture(currentTargetKey);
             resolve();
           },
           undefined,
           (error) => {
             if (remaining > 0) {
-              setTimeout(() => attempt(remaining - 1), 1000);
-            } else reject(error);
+              setTimeout(() => attempt(remaining - 1), 500);
+            } else {
+              reject(error);
+            }
           }
         );
       };
@@ -938,18 +1020,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTargetLinks(currentTargetKey);
     initNewsDisplay();
 
+    animate();
+
     const [modelRes] = await Promise.allSettled([
-      loadJapanModel(),
+      loadJapanModelAsync(),
       fetchMessages(),
       fetchNewsData()
     ]);
 
     if (modelRes.status === 'fulfilled') {
-      updateHighlightedPrefecture(currentTargetKey);
       initArcRoutes();
-      animate();
     } else {
-      console.error("アプリ初期化エラー (モデル取得失敗):", modelRes.reason);
+      console.error("アプリ初期化エラー (3Dモデル取得失敗):", modelRes.reason);
     }
   }
 
