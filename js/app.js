@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
   const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
 
+  // Stripe Checkout のリンクURL（※ご自身のStripe Payment Linkに書き換えてください）
+  const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/YOUR_PAYMENT_LINK';
+
   // Supabase 設定
   const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnNwbGR4Znpvc29pcnp4Z2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzAxNDksImV4cCI6MjEwMzEwNjE0OX0.EWKHnjxyCH1GR97bMFe-dB1tLUB7c_fDzPykxA82wvQ';
@@ -21,7 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: false,
-      autoRefreshToken: false
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      // トラッキング防止警告を回避するダミーストレージ定義
+      storage: {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {}
+      }
     }
   }) : null;
 
@@ -59,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultModalCloseBtn = document.getElementById('result-modal-close-btn');
 
   const sendMsgLink = document.getElementById('send-message-link');
+  const stripeSupportLink = document.getElementById('stripe-support-link');
   const optionLocalGov = document.getElementById('option-local-gov');
   const govTitleText = document.getElementById('gov-title-text');
   const govDescText = document.getElementById('gov-desc-text');
@@ -206,6 +217,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (url && url !== '#') {
         dropdownMenu.classList.remove('is-active');
         window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
+  }
+
+  if (stripeSupportLink) {
+    stripeSupportLink.href = STRIPE_CHECKOUT_URL;
+    stripeSupportLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      dropdownMenu.classList.remove('is-active');
+      if (STRIPE_CHECKOUT_URL && STRIPE_CHECKOUT_URL !== 'https://buy.stripe.com/YOUR_PAYMENT_LINK' && STRIPE_CHECKOUT_URL !== '#') {
+        window.open(STRIPE_CHECKOUT_URL, '_blank', 'noopener,noreferrer');
+      } else {
+        showResultModal('現在Stripe決済の準備中です。');
       }
     });
   }
@@ -617,25 +641,22 @@ document.addEventListener('DOMContentLoaded', () => {
     allMessages = [];
 
     rawMessages.forEach(item => {
-      // --- 送信元 (FromLocation) の展開 ---
       let rawFromList = [item.FromLocation || item.sourceId];
       if (typeof rawFromList[0] === 'string' && rawFromList[0].startsWith('[')) {
         try {
           const parsed = JSON.parse(rawFromList[0]);
           if (Array.isArray(parsed) && parsed.length > 0) rawFromList = parsed;
-        } catch (e) { /* 解析失敗時はそのまま */ }
+        } catch (e) { }
       }
 
-      // --- 宛先 (ToLocation) の展開 ---
       let rawToList = [item.ToLocation || item.to];
       if (typeof rawToList[0] === 'string' && rawToList[0].startsWith('[')) {
         try {
           const parsed = JSON.parse(rawToList[0]);
           if (Array.isArray(parsed) && parsed.length > 0) rawToList = parsed;
-        } catch (e) { /* 解析失敗時はそのまま */ }
+        } catch (e) { }
       }
 
-      // 複数宛先・送信元がある場合はそれぞれ展開してメッセージを追加
       rawToList.forEach(rawTo => {
         rawFromList.forEach(rawFrom => {
           const normalizedSourceId = normalizeToPrefectureId(rawFrom);
@@ -697,12 +718,11 @@ document.addEventListener('DOMContentLoaded', () => {
       locEl.textContent = data.from || "全国";
       userIdEl.textContent = data.userId || '';
 
-      // --- かっことハッシュタグの除去処理 ---
       const rawText = data.message || '';
       const cleanText = rawText
-        .replace(/[「」『』()（）\[\]]/g, '')  // かっこを取り除く
-        .replace(/[#＃][^\s#＃]+/g, '')          // 半角・全角のハッシュタグを除去
-        .trim();                             // 前後の余分な空白をトリム
+        .replace(/[「」『』()（）\[\]]/g, '')
+        .replace(/[#＃][^\s#＃]+/g, '')
+        .trim();
 
       textEl.textContent = cleanText;
       cardEl.classList.remove('is-fading');
