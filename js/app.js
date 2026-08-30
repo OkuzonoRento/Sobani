@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ★ Cloudflare Worker の URL に置き換え
-  const WORKER_URL = 'https://sobani.org';
+  const WORKER_URL = 'https://sobani.kenshi-homma-jct.workers.dev';
 
   let currentNewsData = [];
   const readNewsIds = new Set();
