@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
 
   // Stripe Checkout のリンクURL（※ご自身のStripe Payment Linkに書き換えてください）
-  const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/YOUR_PAYMENT_LINK';
+  const STRIPE_CHECKOUT_URL = 'https://donate.stripe.com/test_28E8wP9mugHx5kX0qkf3a00';
 
   // Supabase 設定
   const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
