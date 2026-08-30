@@ -11,19 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ARCH_VARIANCE: 0.6
   };
 
-  const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
-  const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
-
-  // Supabase 設定
-  const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnNwbGR4Znpvc29pcnp4Z2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzAxNDksImV4cCI6MjEwMzEwNjE0OX0.EWKHnjxyCH1GR97bMFe-dB1tLUB7c_fDzPykxA82wvQ';
-  
-  const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  }) : null;
+  // ★ Cloudflare Worker の URL に置き換え
+  const WORKER_URL = 'https://sobani.org';
 
   let currentNewsData = [];
   const readNewsIds = new Set();
@@ -268,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     5. ニュース機能（GAS_NEWS_URL から取得）
+     5. ニュース機能（Worker 経由で取得）
   ========================================================= */
   if (typeof readNewsIds !== 'undefined' && readNewsIds instanceof Set) {
     const savedReadIds = JSON.parse(localStorage.getItem('readNewsIds') || '[]');
@@ -288,10 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchNewsData() {
     try {
-      const response = await fetch(`${GAS_NEWS_URL}?action=getNews`, {
-        method: 'GET',
-        mode: 'cors'
-      });
+      const response = await fetch(`${WORKER_URL}/api/news`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const resData = await response.json();
@@ -439,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     6. 不具合報告モーダル（GAS_REPORT_URL に送信）
+     6. 不具合報告モーダル（Worker 経由で送信）
   ========================================================= */
   let isSubmitting = false;
 
@@ -496,9 +482,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bugModalClose) bugModalClose.style.display = 'none';
 
     try {
-      const response = await fetch(GAS_REPORT_URL, {
+      const response = await fetch(`${WORKER_URL}/api/report`, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const resData = await response.json();
@@ -523,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     7. メッセージデータ管理（Supabase の Retrieved_posts から取得）
+     7. メッセージデータ管理（Worker 経由で取得）
   ========================================================= */
   let allMessages = []; 
   let currentFilteredMessages = []; 
@@ -593,25 +579,14 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchMessages() {
     let rawMessages = [];
 
-    if (!supabaseClient) {
-      console.warn('Supabase SDK が初期化されていません。');
-    } else {
-      try {
-        const { data, error } = await supabaseClient
-          .from('Retrieved_posts')
-          .select('*');
-
-        if (error) throw error;
-
-        if (data && Array.isArray(data) && data.length > 0) {
-          rawMessages = data;
-          console.log('Supabaseからのデータ取得成功:', rawMessages.length, '件');
-          console.table(rawMessages); 
-        }
-      } catch (error) {
-        console.warn('Supabase (Retrieved_posts) 取得エラー:', error.message || error);
-        rawMessages = [];
-      }
+    try {
+      const response = await fetch(`${WORKER_URL}/api/messages`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      rawMessages = await response.json();
+      console.log('Worker 経由でのメッセージデータ取得成功:', rawMessages.length, '件');
+    } catch (error) {
+      console.warn('メッセージ取得エラー:', error.message || error);
+      rawMessages = [];
     }
 
     allMessages = [];
@@ -696,7 +671,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       locEl.textContent = data.from || "全国";
       userIdEl.textContent = data.userId || '';
-      textEl.textContent = `「${data.message}」`;
+
+      // --- かっことハッシュタグの除去処理 ---
+      const rawText = data.message || '';
+      const cleanText = rawText
+        .replace(/[「」『』()（）\[\]]/g, '')  // かっこを取り除く
+        .replace(/[#＃][^\s#＃]+/g, '')          // 半角・全角のハッシュタグを除去
+        .trim();                             // 前後の余分な空白をトリム
+
+      textEl.textContent = cleanText;
       cardEl.classList.remove('is-fading');
     }, 300);
   }
