@@ -74,6 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const govTitleText = document.getElementById('gov-title-text');
   const govDescText = document.getElementById('gov-desc-text');
 
+  // このサイトについて モーダル関連
+  const aboutModal = document.getElementById('about-modal');
+  const openAboutModalBtn = document.getElementById('open-about-modal');
+  const aboutModalClose = document.getElementById('about-modal-close');
+  const aboutTabBtns = document.querySelectorAll('.about-tab-btn');
+  const aboutTabContents = document.querySelectorAll('.about-tab-content');
+
   // SNS共有モーダル関連
   const shareModal = document.getElementById('share-modal');
   const openShareModalBtn = document.getElementById('open-share-modal');
@@ -113,6 +120,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let newsOpenedFrom = 'home';
 
   /* =========================================================
+     モーダル開閉時の背景スクロール制御関数
+  ========================================================= */
+  function openModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.add('is-open', 'active');
+    modalEl.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.remove('is-open', 'active');
+    modalEl.style.display = 'none';
+    
+    const openModals = document.querySelectorAll('.modal-backdrop.is-open, .modal-backdrop.active');
+    if (openModals.length === 0) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  /* =========================================================
      3. 都道府県選択ドロップダウンの動的生成および初期化
   ========================================================= */
   if (typeof DISPLAY_PREFECTURES !== 'undefined' && Array.isArray(DISPLAY_PREFECTURES)) {
@@ -138,10 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
   ========================================================= */
   const showResultModal = (msg) => {
     resultModalMessage.textContent = msg;
-    resultModal.classList.add('is-open');
+    openModal(resultModal);
   };
 
-  const hideResultModal = () => resultModal.classList.remove('is-open');
+  const hideResultModal = () => closeModal(resultModal);
 
   if (resultModalCloseBtn) resultModalCloseBtn.addEventListener('click', hideResultModal);
   if (resultModal) {
@@ -170,14 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', (e) => {
       if (btn.tagName === 'A') e.preventDefault();
       resetModalSteps();
-      donateModal.classList.add('is-open');
+      openModal(donateModal);
       dropdownMenu.classList.remove('is-active');
     });
   });
 
-  modalClose.addEventListener('click', () => donateModal.classList.remove('is-open'));
+  modalClose.addEventListener('click', () => closeModal(donateModal));
   donateModal.addEventListener('click', (e) => {
-    if (e.target === donateModal) donateModal.classList.remove('is-open');
+    if (e.target === donateModal) closeModal(donateModal);
   });
 
   optionExternalDonate.addEventListener('click', () => {
@@ -193,19 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const SUCCESS_MESSAGE = "動画広告の視聴が完了しました！\nご協力ありがとうございます。\n収益は寄付金として支援されました。";
 
   function handleAdRewardDonate() {
-    // リワード広告SDKが存在しない場合のフォールバック（デモ表示用）
     if (typeof window.RewardAdSDK === 'undefined') {
       console.warn('RewardAdSDK が読み込まれていません。デモ完了表示に移行します。');
-      if (donateModal) donateModal.classList.remove('is-open');
+      closeModal(donateModal);
       showResultModal(SUCCESS_MESSAGE);
       return;
     }
 
-    // SDK呼び出し
     window.RewardAdSDK.show({
       adUnitId: 'YOUR_AD_UNIT_ID',
       onReward: () => {
-        if (donateModal) donateModal.classList.remove('is-open');
+        closeModal(donateModal);
         showResultModal(SUCCESS_MESSAGE);
       },
       onClose: (completed) => {
@@ -272,33 +298,84 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     4-B. SNS共有モーダル制御
+     4-B. 「このサイトについて」モーダル制御・タブ切り替え
+  ========================================================= */
+  if (openAboutModalBtn) {
+    openAboutModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dropdownMenu.classList.remove('is-active');
+      openModal(aboutModal);
+    });
+  }
+
+  if (aboutModalClose) {
+    aboutModalClose.addEventListener('click', () => {
+      closeModal(aboutModal);
+    });
+  }
+
+  if (aboutModal) {
+    aboutModal.addEventListener('click', (e) => {
+      if (e.target === aboutModal) {
+        closeModal(aboutModal);
+      }
+    });
+  }
+
+  // タブ切り替えロジック
+  aboutTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+
+      aboutTabBtns.forEach(b => {
+        b.classList.remove('active');
+        b.style.fontWeight = 'normal';
+        b.style.borderBottom = 'none';
+        b.style.color = '#666';
+      });
+      btn.classList.add('active');
+      btn.style.fontWeight = 'bold';
+      btn.style.borderBottom = '2px solid #e11d48';
+      btn.style.color = '#e11d48';
+
+      aboutTabContents.forEach(content => {
+        if (content.id === `tab-content-${targetTab}`) {
+          content.style.display = 'block';
+        } else {
+          content.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  /* =========================================================
+     4-C. SNS共有モーダル制御
   ========================================================= */
   if (openShareModalBtn) {
     openShareModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
       dropdownMenu.classList.remove('is-active');
-      shareModal.classList.add('is-open');
+      openModal(shareModal);
     });
   }
 
   if (shareModalClose) {
     shareModalClose.addEventListener('click', () => {
-      shareModal.classList.remove('is-open');
+      closeModal(shareModal);
     });
   }
 
   if (shareModal) {
     shareModal.addEventListener('click', (e) => {
       if (e.target === shareModal) {
-        shareModal.classList.remove('is-open');
+        closeModal(shareModal);
       }
     });
   }
 
   if (shareTwitterBtn) {
     shareTwitterBtn.addEventListener('click', () => {
-      shareModal.classList.remove('is-open');
+      closeModal(shareModal);
     });
   }
 
@@ -319,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.execCommand('copy');
           textArea.remove();
         }
-        shareModal.classList.remove('is-open');
+        closeModal(shareModal);
         showResultModal('URLをクリップボードにコピーしました！');
       } catch (err) {
         console.error('URLコピー失敗:', err);
@@ -443,10 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newsViewList) newsViewList.style.display = 'block';
     if (newsViewDetail) newsViewDetail.style.display = 'none';
     if (newsModalClose) newsModalClose.style.display = 'block';
-    if (newsModal) {
-      newsModal.style.display = 'flex';
-      newsModal.classList.add('is-open', 'active');
-    }
+    openModal(newsModal);
     if (dropdownMenu) dropdownMenu.classList.remove('is-active', 'active');
   }
 
@@ -464,17 +538,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newsViewDetail) newsViewDetail.style.display = 'block';
     if (newsModalClose) newsModalClose.style.display = 'none';
 
-    if (newsModal) {
-      newsModal.style.display = 'flex';
-      newsModal.classList.add('is-open', 'active');
-    }
+    openModal(newsModal);
   }
 
   function closeNewsModal() {
-    if (newsModal) {
-      newsModal.classList.remove('is-open', 'active');
-      newsModal.style.display = 'none';
-    }
+    closeModal(newsModal);
   }
 
   if (openNewsModalBtn) openNewsModalBtn.addEventListener('click', (e) => { e.preventDefault(); showNewsListModal(); });
@@ -508,19 +576,19 @@ document.addEventListener('DOMContentLoaded', () => {
     openBugBtn.addEventListener('click', (e) => {
       e.preventDefault();
       dropdownMenu.classList.remove('is-active');
-      bugModal.classList.add('is-open');
+      openModal(bugModal);
     });
   }
 
   if (bugModalClose) {
     bugModalClose.addEventListener('click', () => {
-      if (!isSubmitting) bugModal.classList.remove('is-open');
+      if (!isSubmitting) closeModal(bugModal);
     });
   }
 
   bugModal.addEventListener('click', (e) => {
     if (!isSubmitting && e.target === bugModal) {
-      bugModal.classList.remove('is-open');
+      closeModal(bugModal);
     }
   });
 
@@ -566,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (resData.status === 'success') {
         bugForm.reset();
-        bugModal.classList.remove('is-open');
+        closeModal(bugModal);
         showResultModal(`不具合報告を送信しました。\nご協力ありがとうございます！`);
       } else {
         showResultModal(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
