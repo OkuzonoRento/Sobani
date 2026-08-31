@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
   const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
 
-  // Stripe Checkout のリンクURL（※ご自身のStripe Payment Linkに書き換えてください）
+  // Stripe Checkout のリンクURL
   const STRIPE_CHECKOUT_URL = 'https://donate.stripe.com/test_28E8wP9mugHx5kX0qkf3a00';
 
   // Supabase 設定
@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
-      // トラッキング防止警告を回避するダミーストレージ定義
       storage: {
         getItem: () => null,
         setItem: () => {},
@@ -61,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const openDonateBtns = document.querySelectorAll('.open-donate-modal');
   const modalStep1 = document.getElementById('modal-step-1');
   const modalStep2 = document.getElementById('modal-step-2');
+  const optionAdDonate = document.getElementById('option-ad-donate');
   const optionExternalDonate = document.getElementById('option-external-donate');
   const modalBackBtn = document.getElementById('modal-back-btn');
 
@@ -188,6 +188,43 @@ document.addEventListener('DOMContentLoaded', () => {
   modalBackBtn.addEventListener('click', resetModalSteps);
 
   /**
+   * 4-A. 動画広告を見て寄付する処理の実装
+   */
+  const SUCCESS_MESSAGE = "動画広告の視聴が完了しました！\nご協力ありがとうございます。\n収益は寄付金として支援されました。";
+
+  function handleAdRewardDonate() {
+    // リワード広告SDKが存在しない場合のフォールバック（デモ表示用）
+    if (typeof window.RewardAdSDK === 'undefined') {
+      console.warn('RewardAdSDK が読み込まれていません。デモ完了表示に移行します。');
+      if (donateModal) donateModal.classList.remove('is-open');
+      showResultModal(SUCCESS_MESSAGE);
+      return;
+    }
+
+    // SDK呼び出し
+    window.RewardAdSDK.show({
+      adUnitId: 'YOUR_AD_UNIT_ID',
+      onReward: () => {
+        if (donateModal) donateModal.classList.remove('is-open');
+        showResultModal(SUCCESS_MESSAGE);
+      },
+      onClose: (completed) => {
+        if (!completed) {
+          showResultModal('動画の再生が中断されたため、寄付は完了しませんでした。');
+        }
+      },
+      onError: (err) => {
+        console.error('広告再生エラー:', err);
+        showResultModal('広告の配信エラーが発生しました。時間を置いてお試しください。');
+      }
+    });
+  }
+
+  if (optionAdDonate) {
+    optionAdDonate.addEventListener('click', handleAdRewardDonate);
+  }
+
+  /**
    * 都道府県選択に応じた各種動的リンクの更新処理
    */
   function updateTargetLinks(targetKey) {
@@ -292,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     5. ニュース機能（GAS_NEWS_URL から取得）
+     5. ニュース機能
   ========================================================= */
   if (typeof readNewsIds !== 'undefined' && readNewsIds instanceof Set) {
     const savedReadIds = JSON.parse(localStorage.getItem('readNewsIds') || '[]');
@@ -463,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     6. 不具合報告モーダル（GAS_REPORT_URL に送信）
+     6. 不具合報告モーダル
   ========================================================= */
   let isSubmitting = false;
 
@@ -547,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     7. メッセージデータ管理（Supabase の Retrieved_posts から取得）
+     7. メッセージデータ管理
   ========================================================= */
   let allMessages = []; 
   let currentFilteredMessages = []; 
@@ -629,8 +666,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data && Array.isArray(data) && data.length > 0) {
           rawMessages = data;
-          console.log('Supabaseからのデータ取得成功:', rawMessages.length, '件');
-          console.table(rawMessages); 
         }
       } catch (error) {
         console.warn('Supabase (Retrieved_posts) 取得エラー:', error.message || error);
@@ -674,8 +709,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     });
-
-    console.log('アプリ用に整形・マッピングした全メッセージデータ:', allMessages);
 
     filterMessagesByTarget(currentTargetKey);
   }

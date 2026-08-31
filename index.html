@@ -17,7 +17,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js" defer></script>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous"></script>
+  <!-- Google AdSense 基本スクリプト -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous" data-adtest="on"></script>
 </head>
 <body>
 
@@ -47,10 +48,9 @@
             寄付で応援する
           </a>
           <a href="#" target="_blank" rel="noopener noreferrer" class="dropdown-item dropdown-item-action" id="stripe-support-link">
-          運営を支援する
+            運営を支援する
           </a>
           <div class="menu-divider"></div>
-          <!-- マイページの位置を「SNSで広める」に変更 -->
           <a href="#" class="dropdown-item" id="open-share-modal">SNSで広める</a>
           <a href="#" class="dropdown-item dropdown-item-news" id="open-news-modal">
             <span>お知らせ・ニュース</span>
@@ -80,14 +80,12 @@
           <span id="msg-user-id" class="card-user-id"></span>
         </div>
       </div>
-      <p class="card-text" id="msg-text">
-        
-      </p>
+      <p class="card-text" id="msg-text"></p>
     </div>
   </section>
 
   <!-- =========================================================
-       寄付案内バナーセクション
+       寄付案内バナーセクション（シンプル配置）
   ========================================================= -->
   <section class="donate-banner-section">
     <button class="btn-donate-large open-donate-modal">
@@ -109,7 +107,23 @@
   </section>
 
   <!-- =========================================================
-       SNS共有モーダル（新規追加）
+       ボトム広告セクション（フッター直上・全デバイス共通）
+  ========================================================= -->
+  <aside class="footer-ad-section">
+    <div class="footer-ad-container">
+      <span class="ad-label">スポンサーリンク</span>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-8872888803893974"
+           data-ad-slot="1122334455"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       SNS共有モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="share-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
@@ -176,16 +190,19 @@
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
         
         <div class="donate-options">
-          <div class="donate-option-card is-disabled" id="option-ad-donate">
+          <div class="donate-option-card" id="option-ad-donate" style="cursor: pointer;">
             <div class="option-info">
               <div class="option-title">
-                閲覧・サイト利用による支援
-                <span class="option-tag tag-preparing">準備中</span>
+                広告を見て無料で寄付する
+                <span class="option-tag tag-direct" style="background:#40c057;">無料支援</span>
               </div>
+              <p class="option-desc">
+                約30秒の動画広告を最後まで視聴すると、収益が被災地への寄付金としてカウントされます。
+              </p>
             </div>
           </div>
 
-          <div class="donate-option-card" id="option-external-donate">
+          <div class="donate-option-card" id="option-external-donate" style="cursor: pointer;">
             <div class="option-info">
               <div class="option-title">
                 外部サイトで寄付する

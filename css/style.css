@@ -31,7 +31,7 @@ body {
   justify-content: space-between;
   padding: 0 20px;
   z-index: 100;
-  border-bottom: 1px solid #d0d0d0; /* グレー境界線 */
+  border-bottom: 1px solid #d0d0d0;
 }
 
 .logo-area {
@@ -44,8 +44,8 @@ body {
 }
 
 .logo-icon {
-  background: #d92626; /* 赤 */
-  color: #ffffff;      /* 白 */
+  background: #d92626;
+  color: #ffffff;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -53,7 +53,7 @@ body {
 
 .logo-text {
   font-size: 18px;
-  color: #111111;      /* 黒 */
+  color: #111111;
 }
 
 .header-actions {
@@ -94,7 +94,7 @@ body {
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   width: 220px;
   display: none;
   flex-direction: column;
@@ -122,28 +122,27 @@ body {
 
 .dropdown-item-action {
   font-weight: bold;
-  color: #d92626; /* 赤 */
+  color: #d92626;
 }
 
 .menu-divider {
   height: 1px;
-  background: #e0e0e0; /* グレー境界線 */
+  background: #e0e0e0;
   margin: 6px 0;
 }
 
 /* ---------------------------------------------------------
-   3Dマップ表示セクション (海：透明感のある水色グラデーション)
+   3Dマップ表示セクション
 --------------------------------------------------------- */
 .map-section {
   position: relative;
   width: 100%;
   height: 80vh;
   min-height: 500px;
-  /* 透明感のある水色の爽やかなグラデーション */
   background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
   margin-top: 60px;
   overflow: hidden;
-  border-bottom: 1px solid #d0d0d0; /* グレー境界線 */
+  border-bottom: 1px solid #d0d0d0;
 }
 
 .region-select-wrapper {
@@ -156,7 +155,7 @@ body {
 .region-select {
   padding: 8px 16px;
   border-radius: 6px;
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   background: rgba(255, 255, 255, 0.9);
   color: #111111;
   font-size: 14px;
@@ -169,7 +168,6 @@ body {
   height: 100%;
 }
 
-/* メッセージ表示カード */
 .message-card-overlay {
   position: absolute;
   bottom: 20px;
@@ -181,7 +179,7 @@ body {
   width: 380px;
   max-width: calc(100% - 40px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   transition: opacity 0.3s ease;
   z-index: 10;
 }
@@ -190,13 +188,12 @@ body {
   opacity: 0;
 }
 
-/* メッセージ表示カード内の追加・修正部分 */
 .card-header {
   font-size: 12px;
   color: #666666;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #c0c0c0; /* ヘッダーとメッセージの間の区切り線 */
+  border-bottom: 1px solid #c0c0c0;
 }
 
 .card-location {
@@ -207,8 +204,8 @@ body {
 }
 
 .card-user-id {
-  color: #888888; /* 鮮やかな赤から薄いグレーに変更 */
-  font-weight: normal; /* 必要に応じて bold から normal に落とすとさらに馴染みます */
+  color: #888888;
+  font-weight: normal;
   margin-left: auto;
 }
 
@@ -220,19 +217,19 @@ body {
 }
 
 /* ---------------------------------------------------------
-   寄付案内バナー
+   寄付案内バナーセクション
 --------------------------------------------------------- */
 .donate-banner-section {
   padding: 28px 24px;
   display: flex;
   justify-content: center;
   background: #ffffff;
-  border-bottom: 1px solid #e0e0e0; /* グレー境界線 */
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .btn-donate-large {
-  background: #d92626; /* 赤 */
-  color: #ffffff;      /* 白 */
+  background: #d92626;
+  color: #ffffff;
   border: 2px solid #d92626;
   padding: 14px 28px;
   border-radius: 30px;
@@ -264,7 +261,6 @@ body {
 .news-preview-section {
   padding: 40px 24px 60px;
   background: #ffffff;
-  border-top: 1px solid #e0e0e0; /* グレー境界線 */
 }
 
 .section-container {
@@ -286,7 +282,7 @@ body {
 }
 
 .btn-text-link {
-  color: #d92626; /* 赤 */
+  color: #d92626;
   font-weight: bold;
   font-size: 14px;
   background: none;
@@ -307,7 +303,7 @@ body {
 
 .news-card {
   background: #ffffff;
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
@@ -327,7 +323,7 @@ body {
   display: inline-block;
   width: 8px;
   height: 8px;
-  background-color: #d92626; /* 赤 */
+  background-color: #d92626;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -350,8 +346,8 @@ body {
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  background: #111111; /* 黒 */
-  color: #ffffff;      /* 白 */
+  background: #111111;
+  color: #ffffff;
 }
 
 .news-tag.tag-update { background: #111111; color: #ffffff; }
@@ -415,8 +411,31 @@ body {
   line-height: 1.8;
   color: #111111;
   white-space: pre-wrap;
-  border-top: 1px solid #e0e0e0; /* グレー境界線 */
+  border-top: 1px solid #e0e0e0;
   padding-top: 16px;
+}
+
+/* ---------------------------------------------------------
+   ボトム広告セクション（フッター直上）
+--------------------------------------------------------- */
+.footer-ad-section {
+  background: #ffffff;
+  padding: 24px 20px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.footer-ad-container {
+  max-width: 960px;
+  margin: 0 auto;
+  min-height: 90px;
+}
+
+.ad-label {
+  display: block;
+  font-size: 10px;
+  color: #888888;
+  margin-bottom: 6px;
 }
 
 /* ---------------------------------------------------------
@@ -449,7 +468,7 @@ body {
   max-width: 480px;
   position: relative;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
 }
 
 .modal-close {
@@ -502,7 +521,7 @@ body {
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
@@ -577,7 +596,7 @@ body {
 .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #d0d0d0; /* グレー境界線 */
+  border: 1px solid #d0d0d0;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
@@ -595,7 +614,7 @@ body {
   background: #f5f5f5;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #e0e0e0; /* グレー境界線 */
+  border: 1px solid #e0e0e0;
 }
 
 .env-checkbox-label {
@@ -640,7 +659,6 @@ body {
   background: #333333;
 }
 
-/* ボタン非活性化スタイル */
 .btn-donate-large:disabled,
 .btn-donate-large.is-disabled {
   opacity: 0.5;
@@ -655,8 +673,8 @@ body {
    フッターデザイン (赤ベース / 白文字)
 ========================================================= */
 .site-footer {
-  background-color: #d92626; /* 赤ベース */
-  color: #ffffff;            /* 白文字 */
+  background-color: #d92626;
+  color: #ffffff;
   padding: 40px 20px 24px;
   text-align: center;
   border-top: 1px solid #b81b1b;
@@ -699,7 +717,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   レスポンシブ対応（スマホ画面）
+   レスポンシブ対応
 --------------------------------------------------------- */
 @media (max-width: 640px) {
   .message-card-overlay {
