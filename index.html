@@ -17,13 +17,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js" defer></script>
 
-  <!-- Google AdSense 基本スクリプト -->
+  <!-- Google AdSense 基本スクリプト（1度だけ読み込み） -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous"></script>
 </head>
 <body>
 
   <!-- =========================================================
-       ヘッダーセクション（ロゴ、メニューボタン、未読バッジ）
+        ヘッダーセクション（ロゴ、メニューボタン、未読バッジ）
   ========================================================= -->
   <header class="site-header">
     <a href="#" class="logo-area">
@@ -63,7 +63,7 @@
   </header>
 
   <!-- =========================================================
-       3Dマップ表示セクション
+        3Dマップ表示セクション
   ========================================================= -->
   <section id="section-3d-map" class="map-section">
     <div class="region-select-wrapper">
@@ -85,7 +85,7 @@
   </section>
 
   <!-- =========================================================
-       寄付案内バナーセクション（シンプル配置）
+        寄付案内バナーセクション（シンプル配置）
   ========================================================= -->
   <section class="donate-banner-section">
     <button class="btn-donate-large open-donate-modal">
@@ -94,7 +94,7 @@
   </section>
 
   <!-- =========================================================
-       最新ニュースプレビューセクション
+        最新ニュースプレビューセクション
   ========================================================= -->
   <section class="news-preview-section">
     <div class="section-container">
@@ -107,11 +107,12 @@
   </section>
 
   <!-- =========================================================
-       ボトム広告セクション（フッター直上・全デバイス共通）
+        ボトム広告セクション（フッター直上・全デバイス共通）
   ========================================================= -->
   <aside class="footer-ad-section">
     <div class="footer-ad-container">
       <span class="ad-label">スポンサーリンク</span>
+      <!-- AdSense広告ユニット -->
       <ins class="adsbygoogle"
            style="display:block"
            data-ad-client="ca-pub-8872888803893974"
@@ -123,7 +124,7 @@
   </aside>
 
   <!-- =========================================================
-       SNS共有モーダル
+        SNS共有モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="share-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
@@ -154,7 +155,7 @@
   </div>
 
   <!-- =========================================================
-       ニュース一覧・詳細表示モーダル
+        ニュース一覧・詳細表示モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="news-modal" role="dialog" aria-modal="true">
     <div class="modal-content news-modal-content">
@@ -179,7 +180,7 @@
   </div>
 
   <!-- =========================================================
-       寄付方法選択モーダル
+        寄付方法選択モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="donate-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
@@ -251,7 +252,7 @@
   </div>
 
   <!-- =========================================================
-       不具合報告モーダル
+        不具合報告モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="bug-report-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
@@ -285,7 +286,7 @@
   </div>
 
   <!-- =========================================================
-       処理結果表示用ダイアログモーダル
+        処理結果表示用ダイアログモーダル
   ========================================================= -->
   <div class="modal-backdrop" id="result-modal" role="dialog" aria-modal="true">
     <div class="modal-content result-modal-content">
@@ -295,7 +296,7 @@
   </div>
 
   <!-- =========================================================
-       フッターセクション
+        フッターセクション
   ========================================================= -->
   <footer class="site-footer">
     <div class="footer-container">
