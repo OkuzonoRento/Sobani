@@ -13,11 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const GAS_NEWS_URL = 'https://script.google.com/macros/s/AKfycbx_YuKTspfzfxgtTr-qFWQu7OKAPKcckdqO7ohgy_2NrkGZkF-0qK4wYaL3FOyJc1b6Xg/exec';
   const GAS_REPORT_URL = 'https://script.google.com/macros/s/AKfycbxium_dLE0-zIVv9kdXeCzxjIJAjQHnIuz60LGaf31XG898K_HIA4LmWC70hcUj8QkO/exec';
-
-  // Stripe Checkout のリンクURL
   const STRIPE_CHECKOUT_URL = 'https://donate.stripe.com/test_28E8wP9mugHx5kX0qkf3a00';
 
-  // Supabase 設定
+  // Supabase クライアント初期化
   const SUPABASE_URL = 'https://pcfspldxfzosoirzxgfg.supabase.co/';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnNwbGR4Znpvc29pcnp4Z2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzAxNDksImV4cCI6MjEwMzEwNjE0OX0.EWKHnjxyCH1GR97bMFe-dB1tLUB7c_fDzPykxA82wvQ';
   
@@ -50,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   /* =========================================================
-     2. UI DOM要素の参照取得
+     2. DOM要素の取得
   ========================================================= */
   const regionSelect = document.getElementById('region-select');
   const menuBtn = document.getElementById('menu-btn');
@@ -74,14 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const govTitleText = document.getElementById('gov-title-text');
   const govDescText = document.getElementById('gov-desc-text');
 
-  // このサイトについて モーダル関連
   const aboutModal = document.getElementById('about-modal');
   const openAboutModalBtn = document.getElementById('open-about-modal');
   const aboutModalClose = document.getElementById('about-modal-close');
   const aboutTabBtns = document.querySelectorAll('.about-tab-btn');
   const aboutTabContents = document.querySelectorAll('.about-tab-content');
 
-  // SNS共有モーダル関連
   const shareModal = document.getElementById('share-modal');
   const openShareModalBtn = document.getElementById('open-share-modal');
   const shareModalClose = document.getElementById('share-modal-close');
@@ -120,33 +116,33 @@ document.addEventListener('DOMContentLoaded', () => {
   let newsOpenedFrom = 'home';
 
   /* =========================================================
-     モーダル開閉時の背景スクロール制御関数
+     3. モーダル表示制御関数
   ========================================================= */
   function openModal(modalEl) {
     if (!modalEl) return;
-    modalEl.classList.add('is-open', 'active');
+    modalEl.classList.add('is-open');
     modalEl.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
 
   function closeModal(modalEl) {
     if (!modalEl) return;
-    modalEl.classList.remove('is-open', 'active');
+    modalEl.classList.remove('is-open');
     modalEl.style.display = 'none';
     
-    const openModals = document.querySelectorAll('.modal-backdrop.is-open, .modal-backdrop.active');
+    const openModals = document.querySelectorAll('.modal-backdrop.is-open');
     if (openModals.length === 0) {
       document.body.style.overflow = '';
     }
   }
 
   /* =========================================================
-     3. 都道府県選択ドロップダウンの動的生成および初期化
+     4. 都道府県ドロップダウン初期化
   ========================================================= */
   if (typeof DISPLAY_PREFECTURES !== 'undefined' && Array.isArray(DISPLAY_PREFECTURES)) {
     const fragment = document.createDocumentFragment();
     DISPLAY_PREFECTURES.forEach(key => {
-      if (PREFECTURES_DATA[key]) {
+      if (typeof PREFECTURES_DATA !== 'undefined' && PREFECTURES_DATA[key]) {
         const opt = document.createElement('option');
         opt.value = key;
         opt.textContent = PREFECTURES_DATA[key].name;
@@ -162,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
   regionSelect.value = currentTargetKey;
 
   /* =========================================================
-     4. 各種モーダルおよびUIイベント制御
+     5. モーダル・UIイベントリスナー
   ========================================================= */
   const showResultModal = (msg) => {
     resultModalMessage.textContent = msg;
@@ -215,14 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   modalBackBtn.addEventListener('click', resetModalSteps);
 
-  /**
-   * 4-A. 動画広告を見て寄付する処理の実装
-   */
+  // 動画広告寄付処理
   const SUCCESS_MESSAGE = "動画広告の視聴が完了しました！\nご協力ありがとうございます。\n収益は寄付金として支援されました。";
 
   function handleAdRewardDonate() {
     if (typeof window.RewardAdSDK === 'undefined') {
-      console.warn('RewardAdSDK が読み込まれていません。デモ完了表示に移行します。');
+      console.warn('RewardAdSDK が未ロードのためデモ完了として処理します。');
       closeModal(donateModal);
       showResultModal(SUCCESS_MESSAGE);
       return;
@@ -250,17 +244,17 @@ document.addEventListener('DOMContentLoaded', () => {
     optionAdDonate.addEventListener('click', handleAdRewardDonate);
   }
 
-  /**
-   * 都道府県選択に応じた各種動的リンクの更新処理
-   */
+  // 外部リンクの動的更新
   function updateTargetLinks(targetKey) {
+    if (typeof PREFECTURES_DATA === 'undefined') return;
     const data = PREFECTURES_DATA[targetKey] || PREFECTURES_DATA.ishikawa;
+    if (!data) return;
+
     govTitleText.textContent = `${data.name}公式義援金`;
     govDescText.textContent = data.desc;
     optionLocalGov.href = data.url;
 
     const shareUrl = encodeURIComponent(window.location.href);
-
     const prefNameCleaned = data.name.replace(/県$/, '');
     const msgHashtag = encodeURIComponent(`そばに${prefNameCleaned}`);
     const msgPromptText = encodeURIComponent(`${data.name}へ応援メッセージを送ろう！\n`);
@@ -289,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stripeSupportLink.addEventListener('click', (e) => {
       e.preventDefault();
       dropdownMenu.classList.remove('is-active');
-      if (STRIPE_CHECKOUT_URL && STRIPE_CHECKOUT_URL !== 'https://buy.stripe.com/YOUR_PAYMENT_LINK' && STRIPE_CHECKOUT_URL !== '#') {
+      if (STRIPE_CHECKOUT_URL && STRIPE_CHECKOUT_URL !== '#') {
         window.open(STRIPE_CHECKOUT_URL, '_blank', 'noopener,noreferrer');
       } else {
         showResultModal('現在Stripe決済の準備中です。');
@@ -297,9 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* =========================================================
-     4-B. 「このサイトについて」モーダル制御・タブ切り替え
-  ========================================================= */
+  // 「このサイトについて」タブ切り替え
   if (openAboutModalBtn) {
     openAboutModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -308,49 +300,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (aboutModalClose) {
-    aboutModalClose.addEventListener('click', () => {
-      closeModal(aboutModal);
-    });
-  }
-
+  if (aboutModalClose) aboutModalClose.addEventListener('click', () => closeModal(aboutModal));
   if (aboutModal) {
     aboutModal.addEventListener('click', (e) => {
-      if (e.target === aboutModal) {
-        closeModal(aboutModal);
-      }
+      if (e.target === aboutModal) closeModal(aboutModal);
     });
   }
 
-  // タブ切り替えロジック
   aboutTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetTab = btn.getAttribute('data-tab');
-
-      aboutTabBtns.forEach(b => {
-        b.classList.remove('active');
-        b.style.fontWeight = 'normal';
-        b.style.borderBottom = 'none';
-        b.style.color = '#666';
-      });
+      aboutTabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      btn.style.fontWeight = 'bold';
-      btn.style.borderBottom = '2px solid #e11d48';
-      btn.style.color = '#e11d48';
 
       aboutTabContents.forEach(content => {
-        if (content.id === `tab-content-${targetTab}`) {
-          content.style.display = 'block';
-        } else {
-          content.style.display = 'none';
-        }
+        content.style.display = (content.id === `tab-content-${targetTab}`) ? 'block' : 'none';
       });
     });
   });
 
-  /* =========================================================
-     4-C. SNS共有モーダル制御
-  ========================================================= */
+  // SNS共有モーダル
   if (openShareModalBtn) {
     openShareModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -359,25 +328,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (shareModalClose) {
-    shareModalClose.addEventListener('click', () => {
-      closeModal(shareModal);
-    });
-  }
-
+  if (shareModalClose) shareModalClose.addEventListener('click', () => closeModal(shareModal));
   if (shareModal) {
     shareModal.addEventListener('click', (e) => {
-      if (e.target === shareModal) {
-        closeModal(shareModal);
-      }
+      if (e.target === shareModal) closeModal(shareModal);
     });
   }
-
-  if (shareTwitterBtn) {
-    shareTwitterBtn.addEventListener('click', () => {
-      closeModal(shareModal);
-    });
-  }
+  if (shareTwitterBtn) shareTwitterBtn.addEventListener('click', () => closeModal(shareModal));
 
   if (shareCopyBtn) {
     shareCopyBtn.addEventListener('click', async () => {
@@ -406,30 +363,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     5. ニュース機能
+     6. ニュース機能
   ========================================================= */
-  if (typeof readNewsIds !== 'undefined' && readNewsIds instanceof Set) {
+  try {
     const savedReadIds = JSON.parse(localStorage.getItem('readNewsIds') || '[]');
     savedReadIds.forEach(id => readNewsIds.add(String(id)));
+  } catch (e) {
+    console.warn('LocalStorageの読み込みに失敗しました:', e);
   }
 
   function markAsRead(newsId) {
-    if (typeof readNewsIds !== 'undefined') {
-      readNewsIds.add(String(newsId));
-      try {
-        localStorage.setItem('readNewsIds', JSON.stringify(Array.from(readNewsIds)));
-      } catch (e) {
-        console.warn('ローカルストレージへの保存に失敗しました:', e);
-      }
+    readNewsIds.add(String(newsId));
+    try {
+      localStorage.setItem('readNewsIds', JSON.stringify(Array.from(readNewsIds)));
+    } catch (e) {
+      console.warn('LocalStorageへの書き込みに失敗しました:', e);
     }
   }
 
   async function fetchNewsData() {
     try {
-      const response = await fetch(`${GAS_NEWS_URL}?action=getNews`, {
-        method: 'GET',
-        mode: 'cors'
-      });
+      const response = await fetch(`${GAS_NEWS_URL}?action=getNews`, { method: 'GET', mode: 'cors' });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const resData = await response.json();
@@ -445,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNewsDisplay();
       }
     } catch (error) {
-      console.warn('ニュースデータの取得に失敗しました:', error);
+      console.warn('ニュースデータの取得に失敗:', error);
       currentNewsData = [];
       initNewsDisplay();
     }
@@ -461,8 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function createNewsCardElement(item, fromSource) {
     const card = document.createElement('div');
     card.className = 'news-card';
-    
-    const isUnread = typeof readNewsIds !== 'undefined' ? !readNewsIds.has(String(item.id)) : true;
+    const isUnread = !readNewsIds.has(String(item.id));
     const unreadDot = isUnread ? `<span class="unread-badge"></span>` : '';
 
     card.innerHTML = `
@@ -507,10 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const hasUnread = typeof readNewsIds !== 'undefined' 
-      ? currentNewsData.some(item => !readNewsIds.has(String(item.id)))
-      : false;
-
+    const hasUnread = currentNewsData.some(item => !readNewsIds.has(String(item.id)));
     if (dropdownNewsUnread) dropdownNewsUnread.style.display = hasUnread ? 'inline-block' : 'none';
     if (menuBtnUnread) menuBtnUnread.style.display = hasUnread ? 'inline-block' : 'none';
   }
@@ -521,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newsViewDetail) newsViewDetail.style.display = 'none';
     if (newsModalClose) newsModalClose.style.display = 'block';
     openModal(newsModal);
-    if (dropdownMenu) dropdownMenu.classList.remove('is-active', 'active');
+    if (dropdownMenu) dropdownMenu.classList.remove('is-active');
   }
 
   function showNewsDetail(item, fromSource) {
@@ -541,9 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
     openModal(newsModal);
   }
 
-  function closeNewsModal() {
-    closeModal(newsModal);
-  }
+  const closeNewsModal = () => closeModal(newsModal);
 
   if (openNewsModalBtn) openNewsModalBtn.addEventListener('click', (e) => { e.preventDefault(); showNewsListModal(); });
   if (openNewsListBtn) openNewsListBtn.addEventListener('click', showNewsListModal);
@@ -568,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     6. 不具合報告モーダル
+     7. 不具合報告機能
   ========================================================= */
   let isSubmitting = false;
 
@@ -586,11 +534,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  bugModal.addEventListener('click', (e) => {
-    if (!isSubmitting && e.target === bugModal) {
-      closeModal(bugModal);
-    }
-  });
+  if (bugModal) {
+    bugModal.addEventListener('click', (e) => {
+      if (!isSubmitting && e.target === bugModal) closeModal(bugModal);
+    });
+  }
 
   bugForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -610,7 +558,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (includeEnv) {
-      const activePrefName = PREFECTURES_DATA[currentTargetKey] ? PREFECTURES_DATA[currentTargetKey].name : currentTargetKey;
+      const activePrefName = (typeof PREFECTURES_DATA !== 'undefined' && PREFECTURES_DATA[currentTargetKey]) 
+        ? PREFECTURES_DATA[currentTargetKey].name 
+        : currentTargetKey;
       payload.env = {
         pref: activePrefName || "未選択",
         userAgent: navigator.userAgent,
@@ -635,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (resData.status === 'success') {
         bugForm.reset();
         closeModal(bugModal);
-        showResultModal(`不具合報告を送信しました。\nご協力ありがとうございます！`);
+        showResultModal('不具合報告を送信しました。\nご協力ありがとうございます！');
       } else {
         showResultModal(resData.message || '送信に失敗しました。時間をおいて再度お試しください。');
       }
@@ -652,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     7. メッセージデータ管理
+     8. メッセージデータ管理
   ========================================================= */
   let allMessages = []; 
   let currentFilteredMessages = []; 
@@ -672,11 +622,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    const searchKey = normalizeToPrefectureId(identifier);
-    let matchedKey = PREFECTURES_DATA[searchKey] ? searchKey : null;
+    const searchKey = (typeof normalizeToPrefectureId === 'function') ? normalizeToPrefectureId(identifier) : identifier;
+    let matchedKey = (typeof PREFECTURES_DATA !== 'undefined' && PREFECTURES_DATA[searchKey]) ? searchKey : null;
     let matchedData = matchedKey ? PREFECTURES_DATA[searchKey] : null;
 
-    if (!matchedData) {
+    if (!matchedData && typeof PREFECTURES_DATA !== 'undefined') {
       for (const key in PREFECTURES_DATA) {
         if (PREFECTURES_DATA[key].name === identifier || key === searchKey) {
           matchedKey = key;
@@ -686,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (matchedKey) {
+    if (matchedKey && matchedData) {
       const englishMeshName = matchedData.en || (matchedKey.charAt(0).toUpperCase() + matchedKey.slice(1));
       if (prefectureMeshes[englishMeshName]) {
         const worldPos = new THREE.Vector3();
@@ -726,17 +676,13 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('Supabase SDK が初期化されていません。');
     } else {
       try {
-        const { data, error } = await supabaseClient
-          .from('Retrieved_posts')
-          .select('*');
-
+        const { data, error } = await supabaseClient.from('Retrieved_posts').select('*');
         if (error) throw error;
-
         if (data && Array.isArray(data) && data.length > 0) {
           rawMessages = data;
         }
       } catch (error) {
-        console.warn('Supabase (Retrieved_posts) 取得エラー:', error.message || error);
+        console.warn('Supabase取得エラー:', error.message || error);
         rawMessages = [];
       }
     }
@@ -762,8 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       rawToList.forEach(rawTo => {
         rawFromList.forEach(rawFrom => {
-          const normalizedSourceId = normalizeToPrefectureId(rawFrom);
-          const normalizedTargetId = normalizeToPrefectureId(rawTo);
+          const normalizedSourceId = (typeof normalizeToPrefectureId === 'function') ? normalizeToPrefectureId(rawFrom) : rawFrom;
+          const normalizedTargetId = (typeof normalizeToPrefectureId === 'function') ? normalizeToPrefectureId(rawTo) : rawTo;
 
           allMessages.push({
             id: item.tweet_id || item.id,
@@ -843,7 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     8. Three.js 3Dマップ設定
+     9. Three.js 3Dマップ設定
   ========================================================= */
   const scene = new THREE.Scene();
   const BASE_FOV = 32; 
@@ -874,9 +820,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const prefectureMeshes = {};
   const prefPositions = {};
-  const defaultMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5, metalness: 0.1 });
-  const highlightMaterial = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3, metalness: 0.1 });
-  const sharedParticleGeo = new THREE.SphereGeometry(0.12, 16, 16);
+  const defaultMaterial = new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.1, metalness: 0.1 });
+  const highlightMaterial = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.0, metalness: 0.1 });
+  const sharedParticleGeo = new THREE.SphereGeometry(0.2, 16, 16);
 
   function loadJapanModelAsync(retries = 3) {
     return new Promise((resolve, reject) => {
@@ -913,6 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateHighlightedPrefecture(key) {
+    if (typeof PREFECTURES_DATA === 'undefined') return;
     const prefData = PREFECTURES_DATA[key];
     if (!prefData) return;
     const englishName = prefData.en || (key.charAt(0).toUpperCase() + key.slice(1));
@@ -936,12 +883,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     9. 3Dアーカールート・光の粒子アニメーション
+     10. 3Dアーカールート・動的描画（パフォーマンス最適化版）
   ========================================================= */
   let particles = [];
   const lineGroup = new THREE.Group();
   scene.add(lineGroup);
   let interactiveObjects = [];
+
+  const CURVE_DIVISIONS = 40; // 描画処理軽減のため分割数を調整
+
+  /**
+   * 既存ジオメトリのメモリ解放を行い、アニメーションに応じたTubeGeometryを更新する
+   */
+  function updateTubeMeshGeometry(mesh, curve, startRatio, endRatio) {
+    if (startRatio >= endRatio || endRatio <= 0.001) {
+      mesh.visible = false;
+      return;
+    }
+    mesh.visible = true;
+
+    const points = [];
+    const steps = Math.max(2, Math.floor(CURVE_DIVISIONS * (endRatio - startRatio)));
+    for (let i = 0; i <= steps; i++) {
+      const t = startRatio + (i / steps) * (endRatio - startRatio);
+      points.push(curve.getPoint(t));
+    }
+
+    if (points.length < 2) {
+      mesh.visible = false;
+      return;
+    }
+
+    const subCurve = new THREE.CatmullRomCurve3(points);
+    const newGeo = new THREE.TubeGeometry(subCurve, steps, 0.04, 6, false);
+
+    if (mesh.geometry) mesh.geometry.dispose();
+    mesh.geometry = newGeo;
+  }
 
   function clearArcRoutes() {
     if (routeIntervalTimer) {
@@ -991,22 +969,30 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     const curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
-    lineGeo.setDrawRange(0, 0);
 
-    const lineMat = new THREE.LineBasicMaterial({ color: regionColor, transparent: true, opacity: 0.8 });
-    const line = new THREE.Line(lineGeo, lineMat);
+    const lineMat = new THREE.MeshStandardMaterial({
+      color: regionColor,
+      emissive: regionColor,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.95,
+      roughness: 0.2
+    });
+
+    const dummyGeo = new THREE.BufferGeometry();
+    const line = new THREE.Mesh(dummyGeo, lineMat);
     line.userData = { messageData: msg, regionId: regionId };
+    line.visible = false;
     lineGroup.add(line);
-    interactiveObjects.push(line);
 
     const particleMat = new THREE.MeshBasicMaterial({ color: regionColor, transparent: true, opacity: 0 });
     const particle = new THREE.Mesh(sharedParticleGeo, particleMat);
     particle.visible = false;
 
-    const hitMesh = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+    const hitMesh = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
     hitMesh.userData = { messageData: msg, regionId: regionId };
     particle.add(hitMesh);
+    // 粒子（hitMesh）のみを判定対象に登録
     interactiveObjects.push(hitMesh);
     scene.add(particle);
 
@@ -1020,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startProgress: 0.0,
       endProgress: 0.0,
       drawSpeed: 1.8,
-      startDelay: 0,
+      startDelay: Math.random() * 0.5,
       pendingReset: false,
       state: 'WAITING'
     });
@@ -1051,37 +1037,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetSingleRoute(p) {
-    const msg = getMessageForRegion(p.regionId);
-    if (!msg) return;
+  const msg = getMessageForRegion(p.regionId);
+  if (!msg) return;
 
-    const currentTarget = getPrefecturalInfo(currentTargetKey).pos;
-    currentTarget.y += ROUTE_CONFIG.Y_OFFSET + ROUTE_CONFIG.TARGET_Y_OFFSET;
+  const currentTarget = getPrefecturalInfo(currentTargetKey).pos;
+  currentTarget.y += ROUTE_CONFIG.Y_OFFSET + ROUTE_CONFIG.TARGET_Y_OFFSET;
 
-    const startPos = getPrefecturalInfo(msg.sourceId).pos;
-    startPos.y += ROUTE_CONFIG.Y_OFFSET;
+  // メッセージ固有の発信地ID（msg.sourceId）から座標を取得
+  const startPos = getPrefecturalInfo(msg.sourceId).pos;
+  startPos.y += ROUTE_CONFIG.Y_OFFSET;
 
-    const controlPos = new THREE.Vector3(
-      (startPos.x + currentTarget.x) / 2,
-      Math.max(startPos.y, currentTarget.y) + ROUTE_CONFIG.ARCH_HEIGHT + Math.random() * ROUTE_CONFIG.ARCH_VARIANCE,
-      (startPos.z + currentTarget.z) / 2
-    );
+  const controlPos = new THREE.Vector3(
+    (startPos.x + currentTarget.x) / 2,
+    Math.max(startPos.y, currentTarget.y) + ROUTE_CONFIG.ARCH_HEIGHT + Math.random() * ROUTE_CONFIG.ARCH_VARIANCE,
+    (startPos.z + currentTarget.z) / 2
+  );
 
-    p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
-    p.line.geometry.setFromPoints(p.curve.getPoints(50));
-    p.line.geometry.setDrawRange(0, 0);
+  p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
+  p.line.userData = { messageData: msg, regionId: p.regionId };
+  p.hitMesh.userData = { messageData: msg, regionId: p.regionId };
 
-    p.line.userData = { messageData: msg, regionId: p.regionId };
-    p.hitMesh.userData = { messageData: msg, regionId: p.regionId };
-
-    p.progress = 0.0;
-    p.startProgress = 0.0;
-    p.endProgress = 0.0;
-    p.startDelay = 0;
-    p.line.material.opacity = 0.8;
-    p.mesh.visible = false;
-    p.pendingReset = false;
-    p.state = 'DRAWING';
-  }
+  p.progress = 0.0;
+  p.startProgress = 0.0;
+  p.endProgress = 0.0;
+  p.startDelay = 0;
+  p.line.material.opacity = 0.95;
+  p.mesh.visible = false;
+  p.pendingReset = false;
+  p.state = 'DRAWING';
+}
 
   regionSelect.addEventListener('change', (e) => {
     currentTargetKey = e.target.value;
@@ -1092,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     10. レイキャスト判定
+     11. レイキャスト・メッセージタップ判定
   ========================================================= */
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
@@ -1123,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: true });
 
   /* =========================================================
-     11. 描画・アニメーションメインループ
+     12. アニメーションメインループ
   ========================================================= */
   const DURATION_SECONDS = 3.5;
 
@@ -1141,10 +1125,13 @@ document.addEventListener('DOMContentLoaded', () => {
     particles.forEach(p => {
       if (p.state === 'WAITING') {
         p.startDelay -= delta;
+        p.line.visible = false;
         if (p.startDelay <= 0) p.state = 'DRAWING';
+
       } else if (p.state === 'DRAWING') {
         p.mesh.visible = false;
         p.endProgress += delta * p.drawSpeed;
+        
         if (p.endProgress >= 1.0) {
           p.endProgress = 1.0;
           p.state = 'MOVING';
@@ -1152,12 +1139,19 @@ document.addEventListener('DOMContentLoaded', () => {
           p.mesh.position.copy(p.curve.getPoint(0.0));
           p.mesh.visible = true;
         }
+
+        updateTubeMeshGeometry(p.line, p.curve, 0.0, p.endProgress);
+
       } else if (p.state === 'MOVING') {
         p.progress += delta / DURATION_SECONDS;
         if (p.progress >= 1.0) {
           p.progress = 1.0;
-          if (p.pendingReset) p.state = 'LEAVING';
-          else p.progress = 0.0;
+          if (p.pendingReset) {
+            p.state = 'LEAVING';
+            p.startProgress = 0.0;
+          } else {
+            p.progress = 0.0;
+          }
         }
         p.mesh.position.copy(p.curve.getPoint(p.progress));
 
@@ -1169,20 +1163,18 @@ document.addEventListener('DOMContentLoaded', () => {
           p.mesh.material.opacity = 1.0;
         }
 
+        updateTubeMeshGeometry(p.line, p.curve, 0.0, 1.0);
+
       } else if (p.state === 'LEAVING') {
         p.mesh.visible = false;
         p.startProgress += delta * p.drawSpeed;
+
         if (p.startProgress >= 1.0) {
           p.startProgress = 1.0;
           resetSingleRoute(p);
+        } else {
+          updateTubeMeshGeometry(p.line, p.curve, p.startProgress, 1.0);
         }
-        p.line.material.opacity = Math.max(0, 0.8 * (1.0 - p.startProgress));
-      }
-
-      if (p.state !== 'WAITING') {
-        const startIndex = Math.floor(p.startProgress * 50);
-        const endIndex = Math.ceil(p.endProgress * 50);
-        p.line.geometry.setDrawRange(startIndex, Math.max(0, endIndex - startIndex));
       }
     });
 
@@ -1190,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     12. アプリケーション全体の初期化
+     13. アプリ全体の非同期初期化
   ========================================================= */
   async function initApp() {
     updateTargetLinks(currentTargetKey);
@@ -1207,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modelRes.status === 'fulfilled') {
       initArcRoutes();
     } else {
-      console.error("アプリ初期化エラー (3Dモデル取得失敗):", modelRes.reason);
+      console.error("3Dモデル読み込み失敗:", modelRes.reason);
     }
   }
 

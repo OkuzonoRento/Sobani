@@ -12,12 +12,11 @@
 
   <script src="js/three.min.js" defer></script>
   <script src="js/GLTFLoader.js" defer></script>
-  
   <script src="js/prefectures.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js" defer></script>
 
-  <!-- Google AdSense 基本スクリプト（1度だけ読み込み） -->
+  <!-- Google AdSense 基本スクリプト -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872888803893974" crossorigin="anonymous" data-adtest="on"></script>
 </head>
 <body>
@@ -27,7 +26,7 @@
   ========================================================= -->
   <header class="site-header">
     <a href="#" class="logo-area">
-      <div class="logo-icon">折鶴</div>
+      <div class="logo-icon">#</div>
       <span class="logo-text">そばに</span>
     </a>
     <div class="header-actions">
@@ -40,7 +39,7 @@
         </button>
 
         <!-- ヘッダードロップダウンメニュー -->
-        <div class="dropdown-menu" id="dropdown-menu">
+        <nav class="dropdown-menu" id="dropdown-menu">
           <a href="#" target="_blank" rel="noopener noreferrer" class="dropdown-item dropdown-item-action" id="send-message-link">
             メッセージで応援する
           </a>
@@ -58,7 +57,7 @@
             <span class="unread-badge" id="dropdown-news-unread" style="display: none;"></span>
           </a>
           <a href="#" class="dropdown-item" id="open-bug-modal">不具合報告</a>
-        </div>
+        </nav>
       </div>
     </div>
   </header>
@@ -86,7 +85,23 @@
   </section>
 
   <!-- =========================================================
-        寄付案内バナーセクション（シンプル配置）
+        1. 地図直下の広告セクション（横長バナー）
+  ========================================================= -->
+  <aside class="map-ad-section">
+    <div class="map-ad-container">
+      <span class="ad-label">スポンサーリンク</span>
+      <ins class="adsbygoogle"
+           style="display:block;"
+           data-ad-client="ca-pub-8872888803893974"
+           data-ad-slot="4540673903"
+           data-ad-format="horizontal"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+        寄付案内バナーセクション
   ========================================================= -->
   <section class="donate-banner-section">
     <button class="btn-donate-large open-donate-modal">
@@ -108,14 +123,13 @@
   </section>
 
   <!-- =========================================================
-        ボトム広告セクション（フッター直上・全デバイス共通）
+        2. フッター直上の広告セクション（通常形式）
   ========================================================= -->
   <aside class="footer-ad-section">
     <div class="footer-ad-container">
       <span class="ad-label">スポンサーリンク</span>
-      <!-- AdSense広告ユニット -->
       <ins class="adsbygoogle"
-           style="display:block"
+           style="display:block;"
            data-ad-client="ca-pub-8872888803893974"
            data-ad-slot="4540673903"
            data-ad-format="auto"
@@ -128,110 +142,83 @@
         このサイトについて モーダル
   ========================================================= -->
   <div class="modal-backdrop" id="about-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
+    <div class="modal-content">
       <button class="modal-close" id="about-modal-close" aria-label="閉じる">&times;</button>
       <h3 class="modal-title">このサイトについて</h3>
       <p class="modal-subtitle">「そばに Project」のビジョンと使い方</p>
 
-      <!-- 上部：項目選択タブ -->
-      <div class="about-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 8px; overflow-x: auto;">
-        <button class="about-tab-btn active" data-tab="concept" style="padding: 8px 12px; border: none; background: none; font-weight: bold; border-bottom: 2px solid #e11d48; color: #e11d48; cursor: pointer; white-space: nowrap;">コンセプト</button>
-        <button class="about-tab-btn" data-tab="how-to-use" style="padding: 8px 12px; border: none; background: none; color: #666; cursor: pointer; white-space: nowrap;">使い方</button>
-        <button class="about-tab-btn" data-tab="safety" style="padding: 8px 12px; border: none; background: none; color: #666; cursor: pointer; white-space: nowrap;">安心・安全への取り組み</button>
-        <button class="about-tab-btn" data-tab="operation" style="padding: 8px 12px; border: none; background: none; color: #666; cursor: pointer; white-space: nowrap;">運営・お問い合わせ</button>
+      <div class="about-tabs">
+        <button class="about-tab-btn active" data-tab="concept">コンセプト</button>
+        <button class="about-tab-btn" data-tab="how-to-use">使い方</button>
+        <button class="about-tab-btn" data-tab="safety">安心・安全への取り組み</button>
+        <button class="about-tab-btn" data-tab="operation">運営・お問い合わせ</button>
       </div>
 
-      <!-- 下部：本内容記載エリア -->
-      <!-- タブ1: コンセプト -->
       <div class="about-tab-content" id="tab-content-concept">
-        <h4 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">想いを可視化し、継続的な支援の輪をつなぐ</h4>
-        <p style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 12px;">
+        <h4>想いを可視化し、継続的な支援の輪をつなぐ</h4>
+        <p>
           「そばに Project」は、被災地と全国の応援したい人々を温かな想いでつなぐデジタル・サステナブルプラットフォームです。<br>
           災害発生直後だけでなく、時間の経過とともに風化しがちな被災地への関心と支援を「継続的な形」で支えることを目的としています。
         </p>
-        <h5 style="font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #333;">プロジェクトの3つの柱</h5>
-        <ul style="font-size: 13px; line-height: 1.7; color: #555; padding-left: 18px; margin-bottom: 12px;">
+        <h5>プロジェクトの3つの柱</h5>
+        <ul>
           <li><strong>想いの可視化：</strong> SNS上の応援メッセージを3D日本地図上に光のラインとしてリアルタイムで描き出し、「一人じゃない」というメッセージを可視化します。</li>
           <li><strong>手数料ゼロの直接支援：</strong> プラットフォーム側で一切の中間手数料・仲介料を取らず、支援金が100%被災地や公式窓口へ届く構造を実現しています。</li>
           <li><strong>誰でも参加できる無料支援：</strong> 動画広告を最後まで視聴するだけで、費用を負担することなく寄付を行える仕組みを提供しています。</li>
         </ul>
       </div>
 
-      <!-- タブ2: 使い方 -->
       <div class="about-tab-content" id="tab-content-how-to-use" style="display: none;">
-        <h4 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">「そばに」の活用ガイド</h4>
-        
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">1. 3Dマップで応援の光を見る・タップする</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
-            画面上部のドロップダウンから応援したい都道府県を選択します。マップ上に交錯する光のラインや粒子をタップ・クリックすると、その地域へ送られた全国からの個別メッセージを確認できます。
-          </p>
+        <h4>「そばに」の活用ガイド</h4>
+        <div>
+          <h5>1. 3Dマップで応援の光を見る・タップする</h5>
+          <p>画面上部のドロップダウンから応援したい都道府県を選択します。マップ上に交錯する光の粒子をタップ・クリックすると、その地域へ送られた全国からの個別メッセージを確認できます。</p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">2. メッセージで応援する（SNS投稿）</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
-            メニューの「メッセージで応援する」から、指定のハッシュタグ（例: <code>#そばに石川</code>）を付けてX（旧Twitter）へ投稿してください。あなたのメッセージがマップ上に反映されます。
-          </p>
+        <div>
+          <h5>2. メッセージで応援する（SNS投稿）</h5>
+          <p>メニューの「メッセージで応援する」から、指定のハッシュタグ（例: <code>#そばに石川</code>）を付けてX（旧Twitter）へ投稿してください。あなたのメッセージがマップ上に反映されます。</p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">3. 寄付で応援する（無料支援 / 直接支援）</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
+        <div>
+          <h5>3. 寄付で応援する（無料支援 / 直接支援）</h5>
+          <p>
             <strong>広告を見て寄付：</strong> 約30秒の動画広告を最後まで視聴することで、発生した広告収益が義援金として寄付されます。<br>
             <strong>公式窓口で寄付：</strong> 日本赤十字社や各自治体（都道府県）が開設する公式義援金口座へ直接遷移して寄付が可能です。
           </p>
         </div>
       </div>
 
-      <!-- タブ3: 安心・安全への取り組み -->
       <div class="about-tab-content" id="tab-content-safety" style="display: none;">
-        <h4 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">透明性と健全性を守る取り組み</h4>
-        
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 収益・寄付金の透明性と還元</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
-            無料寄付（動画広告視聴）によって発生した広告収益は、プラットフォーム運用費の一部を除き、全額を被災地支援団体や公式義援金窓口へ寄付します。定期的に「お知らせ・ニュース」にて寄付実績と報告を行っています。
-          </p>
+        <h4>透明性と健全性を守る取り組み</h4>
+        <div>
+          <h5>■ 収益・寄付金の透明性と還元</h5>
+          <p>無料寄付（動画広告視聴）によって発生した広告収益は、プラットフォーム運用費の一部を除き、全額を被災地支援団体や公式義援金窓口へ寄付します。定期的に「お知らせ・ニュース」にて寄付実績と報告を行っています。</p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 投稿コンテンツのモデレーション（健全化）</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
-            被災者の方々や閲覧される皆様が安心して利用できるよう、公認のSNS公開投稿のみを取得しています。また、誹謗中傷・不適切な表現・スパム投稿等をブロック・除去するためのフィルタリングおよび通報監視対応を行っています。
-          </p>
+        <div>
+          <h5>■ 投稿コンテンツのモデレーション（健全化）</h5>
+          <p>被災者の方々や閲覧される皆様が安心して利用できるよう、公認のSNS公開投稿のみを取得しています。また、誹謗中傷・不適切な表現・スパム投稿等をブロック・除去するためのフィルタリングおよび通報監視対応を行っています。</p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 個人情報の取り扱い</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
-            当サービスでは、メッセージ表示に必要な公開アカウント名・本文以外の不要な個人情報（位置情報・詳細プロフィール等）を取得・保持することはありません。
-          </p>
+        <div>
+          <h5>■ 個人情報の取り扱い</h5>
+          <p>当サービスでは、メッセージ表示に必要な公開アカウント名・本文以外の不要な個人情報（位置情報・詳細プロフィール等）を取得・保持することはありません。</p>
         </div>
       </div>
 
-      <!-- タブ4: 運営・お問い合わせ -->
       <div class="about-tab-content" id="tab-content-operation" style="display: none;">
-        <h4 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">運営体制とサポート</h4>
-        
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 運営概要</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
+        <h4>運営体制とサポート</h4>
+        <div>
+          <h5>■ 運営概要</h5>
+          <p>
             <strong>プロジェクト名：</strong> そばに Project (Sobani Project)<br>
             <strong>目的：</strong> 災害被災地への継続的支援・応援メッセージ可視化プラットフォームの提供
           </p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 不具合報告・ご意見・お問い合わせ</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555; margin-bottom: 8px;">
-            画面崩れやエラーなどの不具合、または機能改善のご要望につきましては、メニュー内の「不具合報告」フォームをご利用ください。動作環境情報とともに直接開発・運営チームへ送信されます。
-          </p>
+        <div>
+          <h5>■ 不具合報告・ご意見・お問い合わせ</h5>
+          <p>画面崩れやエラーなどの不具合、または機能改善のご要望につきましては、メニュー内の「不具合報告」フォームをご利用ください。動作環境情報とともに直接開発・運営チームへ送信されます。</p>
         </div>
-
-        <div style="margin-bottom: 12px;">
-          <h5 style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">■ 推奨動作環境</h5>
-          <p style="font-size: 13px; line-height: 1.6; color: #555;">
+        <div>
+          <h5>■ 推奨動作環境</h5>
+          <p>
             3Dリアルタイムマップ表示のため、以下の環境でのご利用を推奨しております。<br>
             ・iOS / Android: 最新のSafari, Chromeブラウザ<br>
             ・PC: 最新のGoogle Chrome, Edge, Safari (WebGL対応環境)
@@ -254,18 +241,14 @@
       <div class="donate-options">
         <a href="#" target="_blank" rel="noopener noreferrer" class="donate-option-card" id="share-twitter-btn">
           <div class="option-info">
-            <div class="option-title">
-              X（旧Twitter）で共有
-            </div>
+            <div class="option-title">X（旧Twitter）で共有</div>
             <p class="option-desc">選択中の地域のハッシュタグとリンクを付けてポストします。</p>
           </div>
         </a>
 
-        <div class="donate-option-card" id="share-copy-btn" style="cursor: pointer;">
+        <div class="donate-option-card" id="share-copy-btn">
           <div class="option-info">
-            <div class="option-title">
-              URLをコピー
-            </div>
+            <div class="option-title">URLをコピー</div>
             <p class="option-desc">サイトのURLをクリップボードにコピーして共有します。</p>
           </div>
         </div>
@@ -310,11 +293,11 @@
         <p class="modal-subtitle">あなたに合った応援スタイルをお選びください</p>
         
         <div class="donate-options">
-          <div class="donate-option-card" id="option-ad-donate" style="cursor: pointer;">
+          <div class="donate-option-card" id="option-ad-donate">
             <div class="option-info">
               <div class="option-title">
                 広告を見て無料で寄付する
-                <span class="option-tag tag-direct" style="background:#40c057;">無料支援</span>
+                <span class="option-tag tag-free">無料支援</span>
               </div>
               <p class="option-desc">
                 約30秒の動画広告を最後まで視聴すると、収益が被災地への寄付金としてカウントされます。
@@ -322,7 +305,7 @@
             </div>
           </div>
 
-          <div class="donate-option-card" id="option-external-donate" style="cursor: pointer;">
+          <div class="donate-option-card" id="option-external-donate">
             <div class="option-info">
               <div class="option-title">
                 外部サイトで寄付する
@@ -358,7 +341,7 @@
             <div class="option-info">
               <div class="option-title">
                 <span id="gov-title-text">都道府県公式義援金</span>
-                <span class="option-tag tag-direct">自治体直接</span>
+                <span class="option-tag tag-local">自治体直接</span>
               </div>
               <p class="option-desc" id="gov-desc-text">
                 自治体が開設している公式の災害義援金・寄付金口座へ直接振り込みます。

@@ -2,21 +2,8 @@
    メインスタイル (style.css)
 ========================================================= */
 
-/* ベーススタイル設定 */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: #111111;
-  background-color: #fcfcfc;
-}
-
 /* ---------------------------------------------------------
-   ヘッダー
+   1. ヘッダー
 --------------------------------------------------------- */
 .site-header {
   position: fixed;
@@ -38,8 +25,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  text-decoration: none;
-  color: #111111;
   font-weight: bold;
 }
 
@@ -63,18 +48,15 @@ body {
 }
 
 /* ---------------------------------------------------------
-   ドロップダウンメニュー
+   2. ドロップダウンメニュー
 --------------------------------------------------------- */
 .menu-container {
   position: relative;
 }
 
 .menu-button {
-  background: none;
-  border: none;
   width: 40px;
   height: 40px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,7 +90,6 @@ body {
 
 .dropdown-item {
   padding: 10px 16px;
-  text-decoration: none;
   color: #111111;
   font-size: 14px;
   display: flex;
@@ -132,14 +113,14 @@ body {
 }
 
 /* ---------------------------------------------------------
-   3Dマップ表示セクション
+   3. 3Dマップ表示セクション
 --------------------------------------------------------- */
 .map-section {
   position: relative;
   width: 100%;
   height: 80vh;
   min-height: 500px;
-  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+  background: linear-gradient(180deg, #e6f7ff 0%, #b3e5fc 100%);
   margin-top: 60px;
   overflow: hidden;
   border-bottom: 1px solid #d0d0d0;
@@ -217,7 +198,42 @@ body {
 }
 
 /* ---------------------------------------------------------
-   寄付案内バナーセクション
+   4. 広告セクション
+--------------------------------------------------------- */
+.map-ad-section {
+  background: #e8e8e8;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.map-ad-container, .footer-ad-container {
+  max-width: 960px;
+  margin: 0 auto;
+  min-height: 90px;
+}
+
+.ad-label {
+  display: block;
+  font-size: 9px;
+  color: #888888;
+  margin-bottom: 4px;
+}
+
+.footer-ad-section {
+  background: #f4f4f4;
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.footer-ad-container {
+  min-height: 100px;
+}
+
+/* ---------------------------------------------------------
+   5. 寄付案内バナーセクション
 --------------------------------------------------------- */
 .donate-banner-section {
   padding: 28px 24px;
@@ -255,8 +271,18 @@ body {
   justify-content: center;
 }
 
+.btn-donate-large:disabled,
+.btn-donate-large.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  background: #888888;
+  border-color: #888888;
+}
+
 /* ---------------------------------------------------------
-   ニュースプレビュー・ニュース詳細
+   6. ニュースプレビュー・ニュース詳細
 --------------------------------------------------------- */
 .news-preview-section {
   padding: 40px 24px 60px;
@@ -285,9 +311,6 @@ body {
   color: #d92626;
   font-weight: bold;
   font-size: 14px;
-  background: none;
-  border: none;
-  cursor: pointer;
   transition: opacity 0.2s;
 }
 
@@ -344,15 +367,29 @@ body {
 .news-tag {
   font-size: 11px;
   font-weight: bold;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
-  background: #111111;
-  color: #ffffff;
+  display: inline-block;
+  line-height: 1.2;
 }
 
-.news-tag.tag-update { background: #111111; color: #ffffff; }
-.news-tag.tag-info   { background: #d92626; color: #ffffff; }
-.news-tag.tag-report { background: #f0f0f0; color: #111111; border: 1px solid #d0d0d0; }
+.news-tag.tag-info {
+  background: #ffe3e8;
+  color: #d92626;
+  border: 1px solid #ffccd5;
+}
+
+.news-tag.tag-update {
+  background: #e6f4ff;
+  color: #0958d9;
+  border: 1px solid #bae0ff;
+}
+
+.news-tag.tag-report {
+  background: #f6ffed;
+  color: #389e0d;
+  border: 1px solid #b7eb8f;
+}
 
 .news-date {
   font-size: 12px;
@@ -379,9 +416,7 @@ body {
 }
 
 .news-modal-content {
-  max-width: 600px;
-  max-height: 85vh;
-  overflow-y: auto;
+  max-width: 800px;
 }
 
 .news-list {
@@ -416,30 +451,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   ボトム広告セクション（フッター直上）
---------------------------------------------------------- */
-.footer-ad-section {
-  background: #ffffff;
-  padding: 24px 20px;
-  border-top: 1px solid #e0e0e0;
-  text-align: center;
-}
-
-.footer-ad-container {
-  max-width: 960px;
-  margin: 0 auto;
-  min-height: 90px;
-}
-
-.ad-label {
-  display: block;
-  font-size: 10px;
-  color: #888888;
-  margin-bottom: 6px;
-}
-
-/* ---------------------------------------------------------
-   モーダル共通スタイル
+   7. モーダル共通スタイル
 --------------------------------------------------------- */
 .modal-backdrop {
   position: fixed;
@@ -463,23 +475,22 @@ body {
 .modal-content {
   background: #ffffff;
   border-radius: 16px;
-  padding: 24px;
+  padding: 28px 32px;
   width: 100%;
-  max-width: 480px;
+  max-width: 720px;
   position: relative;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
   border: 1px solid #d0d0d0;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .modal-close {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: none;
-  border: none;
   font-size: 24px;
   color: #111111;
-  cursor: pointer;
 }
 
 .modal-title {
@@ -496,13 +507,9 @@ body {
 }
 
 .modal-back-btn {
-  background: none;
-  border: none;
   color: #666666;
   font-size: 13px;
-  cursor: pointer;
   margin-bottom: 12px;
-  padding: 0;
   font-weight: bold;
 }
 
@@ -523,7 +530,6 @@ body {
   padding: 16px;
   border: 1px solid #d0d0d0;
   border-radius: 12px;
-  text-decoration: none;
   color: inherit;
   cursor: pointer;
   background: #ffffff;
@@ -542,10 +548,6 @@ body {
   border-color: #e0e0e0;
 }
 
-.option-icon {
-  font-size: 24px;
-}
-
 .option-title {
   font-size: 15px;
   font-weight: bold;
@@ -556,14 +558,31 @@ body {
 }
 
 .option-tag {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-weight: normal;
+  display: inline-block;
+  line-height: 1.2;
 }
 
-.tag-preparing { background: #e0e0e0; color: #111111; }
-.tag-direct { background: #d92626; color: #ffffff; }
+.option-tag.tag-free {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #ceead6;
+}
+
+.option-tag.tag-direct {
+  background: #ffe3e8;
+  color: #d92626;
+  border: 1px solid #ffccd5;
+}
+
+.option-tag.tag-local {
+  background: #fff4e5;
+  color: #b86200;
+  border: 1px solid #ffe0b2;
+}
 
 .option-desc {
   font-size: 12px;
@@ -572,8 +591,58 @@ body {
   line-height: 1.4;
 }
 
+/* このサイトについて モーダル内タブ */
+.about-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+.about-tab-btn {
+  padding: 8px 12px;
+  color: #666666;
+  white-space: nowrap;
+}
+
+.about-tab-btn.active {
+  font-weight: bold;
+  border-bottom: 2px solid #e11d48;
+  color: #e11d48;
+}
+
+.about-tab-content h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.about-tab-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444444;
+  margin-bottom: 12px;
+}
+
+.about-tab-content h5 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #333333;
+}
+
+.about-tab-content ul {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #555555;
+  padding-left: 18px;
+  margin-bottom: 12px;
+}
+
 /* ---------------------------------------------------------
-   フォーム系スタイル
+   8. フォーム系スタイル
 --------------------------------------------------------- */
 .bug-form {
   display: flex;
@@ -630,9 +699,7 @@ body {
   color: #666666;
 }
 
-/* ---------------------------------------------------------
-   結果表示モーダル
---------------------------------------------------------- */
+/* ダイアログ結果表示 */
 .result-modal-content {
   text-align: center;
 }
@@ -647,11 +714,9 @@ body {
 .btn-secondary {
   background: #111111;
   color: #ffffff;
-  border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: bold;
-  cursor: pointer;
   transition: background-color 0.2s;
 }
 
@@ -659,19 +724,9 @@ body {
   background: #333333;
 }
 
-.btn-donate-large:disabled,
-.btn-donate-large.is-disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-  background: #888888;
-  border-color: #888888;
-}
-
-/* =========================================================
-   フッターデザイン (赤ベース / 白文字)
-========================================================= */
+/* ---------------------------------------------------------
+   9. フッターデザイン
+--------------------------------------------------------- */
 .site-footer {
   background-color: #d92626;
   color: #ffffff;
@@ -705,7 +760,6 @@ body {
   font-weight: 700;
   letter-spacing: 0.15em;
   color: #ffffff;
-  margin: 0;
 }
 
 .footer-copy {
@@ -717,7 +771,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   レスポンシブ対応
+   10. レスポンシブ対応
 --------------------------------------------------------- */
 @media (max-width: 640px) {
   .message-card-overlay {
