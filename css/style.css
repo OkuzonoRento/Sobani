@@ -28,12 +28,10 @@
   font-weight: bold;
 }
 
-.logo-icon {
-  background: #d92626;
-  color: #ffffff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .logo-text {

@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/style.css">
   
+  <!-- ブラウザのタブ用アイコン（ファビコン） -->
+  <link rel="icon" href="image/sobani-logo.png" type="image/png">
+
+  <!-- スマホ・iOSウェブアイコン（ホーム画面追加時） -->
+  <link rel="apple-touch-icon" href="image/sobani-logo.png">
+
   <link rel="preload" href="models/japan.glb" as="fetch" crossorigin="anonymous">
 
   <script src="js/three.min.js" defer></script>
@@ -25,10 +31,10 @@
         ヘッダーセクション（ロゴ、メニューボタン、未読バッジ）
   ========================================================= -->
   <header class="site-header">
-    <a href="#" class="logo-area">
-      <div class="logo-icon">#</div>
-      <span class="logo-text">そばに</span>
-    </a>
+  <a href="#" class="logo-area">
+    <img src="image/sobani-logo.png" alt="そばにロゴ" class="logo-img">
+    <span class="logo-text">そばに</span>
+  </a>
     <div class="header-actions">
       <div class="menu-container">
         <button class="menu-button" id="menu-btn" aria-label="メニューを開く">
