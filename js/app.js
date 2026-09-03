@@ -1215,14 +1215,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================
-  // 広告の初期化（2箇所分を個別に読み込み）
+  // 広告の初期化（未処理の枠のみ safe に push）
   // =========================================================
   const adElements = document.querySelectorAll('.adsbygoogle');
-  adElements.forEach(() => {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error('AdSense error:', e);
+  adElements.forEach((adEl) => {
+    // AdSenseによって処理済みの属性(data-adsbygoogle-status)が付いていない場合のみ実行
+    if (!adEl.getAttribute('data-adsbygoogle-status')) {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.error('AdSense error:', e);
+      }
     }
   });
 });
