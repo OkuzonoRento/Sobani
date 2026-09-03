@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.RewardAdSDK.show({
-      adUnitId: 'YOUR_AD_UNIT_ID',
+      adUnitId: 'ca-pub-8872888803893974/4540673903',
       onReward: () => {
         closeModal(donateModal);
         showResultModal(SUCCESS_MESSAGE);
@@ -1212,5 +1212,17 @@ document.addEventListener('DOMContentLoaded', () => {
       fitCameraToMap();
       renderer.setSize(container.clientWidth, container.clientHeight);
     }, 100);
+  });
+
+  // =========================================================
+  // 広告の初期化（2箇所分を個別に読み込み）
+  // =========================================================
+  const adElements = document.querySelectorAll('.adsbygoogle');
+  adElements.forEach(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error('AdSense error:', e);
+    }
   });
 });
