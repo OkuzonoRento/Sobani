@@ -996,7 +996,6 @@ document.addEventListener('DOMContentLoaded', () => {
     interactiveObjects = [];
   }
 
-  // 指定した地域(regionId)に存在するメッセージを1件取得する
   function getMessageForRegion(regionId) {
     const matched = currentFilteredMessages.filter(msg => 
       msg.regionId === regionId && msg.sourceId !== currentTargetKey
@@ -1007,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createSingleRouteForRegion(regionId) {
     const msg = getMessageForRegion(regionId);
-    if (!msg) return; // 該当地域にメッセージがなければ生成しない
+    if (!msg) return;
 
     const regionColor = getRegionColor(regionId);
 
@@ -1051,10 +1050,11 @@ document.addEventListener('DOMContentLoaded', () => {
     interactiveObjects.push(hitMesh);
     scene.add(particle);
 
+    // 【速度調整】0.3 -> 0.2 へ少し低速化
     const drawDuration = 0.6 + Math.random() * 0.4;
     const leaveDuration = 0.6 + Math.random() * 0.4;
     const particleSpeed = 0.2; 
-    const loopCount = 3 + Math.floor(Math.random() * 2);
+    const loopCount = 3 + Math.floor(Math.random() * 2); // 速度低下にともない周回数を少し調整して全体の滞在時間を最適化
     const moveDuration = (1.0 / particleSpeed) * loopCount;
 
     particles.push({
@@ -1069,19 +1069,60 @@ document.addEventListener('DOMContentLoaded', () => {
       moveDuration,
       leaveDuration,
       particleSpeed,
-      startDelay: Math.random() * 2.0, // タイミングがバラけるようランダム待機
+      startDelay: Math.random() * 3.0,
       state: 'WAITING'
     });
   }
 
-  // ★修正箇所：REGION_DEFINITIONS の全要素から1つずつ生成する
   function initArcRoutes() {
     clearArcRoutes();
+    const activeRegionIds = [...new Set(currentFilteredMessages.map(msg => msg.regionId))];
 
-    REGION_DEFINITIONS.forEach(reg => {
-      createSingleRouteForRegion(reg.id);
+    activeRegionIds.forEach(regionId => {
+      createSingleRouteForRegion(regionId);
     });
   }
+
+  function resetRouteLifetime(p) {
+    const msg = getMessageForRegion(p.regionId);
+    if (!msg) return;
+
+    const currentTarget = getPrefecturalInfo(currentTargetKey).pos;
+    currentTarget.y += ROUTE_CONFIG.Y_OFFSET + ROUTE_CONFIG.TARGET_Y_OFFSET;
+
+    const startPos = getPrefecturalInfo(msg.sourceId).pos;
+    startPos.y += ROUTE_CONFIG.Y_OFFSET;
+
+    const controlPos = new THREE.Vector3(
+      (startPos.x + currentTarget.x) / 2,
+      Math.max(startPos.y, currentTarget.y) + ROUTE_CONFIG.ARCH_HEIGHT + Math.random() * ROUTE_CONFIG.ARCH_VARIANCE,
+      (startPos.z + currentTarget.z) / 2
+    );
+
+    p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
+    p.line.userData = { messageData: msg, regionId: p.regionId };
+    p.hitMesh.userData = { messageData: msg, regionId: p.regionId };
+
+    // 【速度調整】0.3 -> 0.2 へ少し低速化
+    p.age = 0.0;
+    p.drawDuration = 0.6 + Math.random() * 0.4;
+    p.leaveDuration = 0.6 + Math.random() * 0.4;
+    p.particleSpeed = 0.2;
+    const loopCount = 3 + Math.floor(Math.random() * 2);
+    p.moveDuration = (1.0 / p.particleSpeed) * loopCount;
+
+    p.mesh.visible = false;
+    p.line.visible = false;
+    p.state = 'WAITING';
+  }
+
+  regionSelect.addEventListener('change', (e) => {
+    currentTargetKey = e.target.value;
+    updateHighlightedPrefecture(currentTargetKey);
+    filterMessagesByTarget(currentTargetKey);
+    updateTargetLinks(currentTargetKey);
+    initArcRoutes();
+  });
 
   /* =========================================================
      11. レイキャスト・メッセージタップ判定
