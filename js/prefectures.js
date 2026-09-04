@@ -4,7 +4,7 @@
 // =========================================================
 const ALL_PREFECTURES = [
   "fukui",
-  "mie","nara","kumamoto"
+  "mie","nara","kumamoto", "debug"
 ];
 
 // 表示対象の都道府県キー設定（全県対象にする場合は ALL_PREFECTURES を指定）
@@ -261,6 +261,13 @@ const PREFECTURES_DATA = {
     name: "沖縄県",
     url: "https://www.pref.okinawa.lg.jp/",
     desc: "沖縄県の公式義援金・寄付金口座へ直接振り込みます。"
+  },
+
+  debug: {
+    name: "デバッグ",
+    en: "Kumamoto",
+    url: "#",
+    desc: "デバッグモード表示用"
   }
 };
 
@@ -268,7 +275,7 @@ const PREFECTURES_DATA = {
 // ※ 3Dメッシュが存在しない「仮想発信地」となるため、この座標のみ維持しています
 const UNKNOWN_POINT = {
   name: "どこか",
-  pos: { x: -1.8, y: 0.1, z: -0.8 }
+  pos: { x: -1.5, y: 0.75, z: -0.8 }
 };
 
 // =========================================================

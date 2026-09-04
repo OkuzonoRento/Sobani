@@ -152,9 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
     regionSelect.appendChild(fragment);
   }
 
-  let currentTargetKey = (typeof DISPLAY_PREFECTURES !== 'undefined' && DISPLAY_PREFECTURES.length > 0)
-    ? DISPLAY_PREFECTURES[0] 
-    : 'ishikawa';
+  const defaultPrefecture = (typeof DISPLAY_PREFECTURES !== 'undefined' && DISPLAY_PREFECTURES.length > 0)
+  ? DISPLAY_PREFECTURES[0]
+  : (typeof ALL_PREFECTURES !== 'undefined' && ALL_PREFECTURES.length > 0 ? ALL_PREFECTURES[0] : 'fukui');
+
+  let currentTargetKey = defaultPrefecture;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (regionSelect) {
+      regionSelect.value = currentTargetKey;
+      updateTargetLinks(currentTargetKey);
+    }
+  });
   regionSelect.value = currentTargetKey;
 
   /* =========================================================
@@ -211,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   modalBackBtn.addEventListener('click', resetModalSteps);
 
-  // 動画広告寄付処理
   const SUCCESS_MESSAGE = "動画広告の視聴が完了しました！\nご協力ありがとうございます。\n収益は寄付金として支援されました。";
 
   function handleAdRewardDonate() {
@@ -244,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     optionAdDonate.addEventListener('click', handleAdRewardDonate);
   }
 
-  // 外部リンクの動的更新
   function updateTargetLinks(targetKey) {
     if (typeof PREFECTURES_DATA === 'undefined') return;
     const data = PREFECTURES_DATA[targetKey] || PREFECTURES_DATA.ishikawa;
@@ -291,7 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 「このサイトについて」タブ切り替え
   if (openAboutModalBtn) {
     openAboutModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -319,7 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // SNS共有モーダル
   if (openShareModalBtn) {
     openShareModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -613,31 +618,32 @@ document.addEventListener('DOMContentLoaded', () => {
   function getPrefecturalInfo(identifier) {
     const defaultUnknown = (typeof UNKNOWN_POINT !== 'undefined') 
       ? UNKNOWN_POINT 
-      : { name: "どこか", pos: { x: -1.8, y: 0.1, z: -0.8 } };
+      : { name: "どこか", pos: { x: -1.5, y: 0.75, z: -0.8 } };
 
-    if (!identifier || identifier === 'unknown' || identifier === 'other') {
+    const toVector3 = (p) => {
+      if (p instanceof THREE.Vector3) return p.clone();
+      return new THREE.Vector3(p.x, p.y, p.z);
+    };
+
+    if (!identifier) {
+      return { name: defaultUnknown.name, pos: toVector3(defaultUnknown.pos) };
+    }
+
+    const searchKey = (typeof normalizeToPrefectureId === 'function') 
+      ? normalizeToPrefectureId(identifier) 
+      : String(identifier).toLowerCase();
+
+    if (searchKey === 'unknown' || searchKey === 'other' || searchKey === 'どこか') {
       return { 
         name: defaultUnknown.name, 
-        pos: new THREE.Vector3(defaultUnknown.pos.x, defaultUnknown.pos.y, defaultUnknown.pos.z) 
+        pos: toVector3(defaultUnknown.pos) 
       };
     }
 
-    const searchKey = (typeof normalizeToPrefectureId === 'function') ? normalizeToPrefectureId(identifier) : identifier;
-    let matchedKey = (typeof PREFECTURES_DATA !== 'undefined' && PREFECTURES_DATA[searchKey]) ? searchKey : null;
-    let matchedData = matchedKey ? PREFECTURES_DATA[searchKey] : null;
+    let matchedData = (typeof PREFECTURES_DATA !== 'undefined') ? PREFECTURES_DATA[searchKey] : null;
 
-    if (!matchedData && typeof PREFECTURES_DATA !== 'undefined') {
-      for (const key in PREFECTURES_DATA) {
-        if (PREFECTURES_DATA[key].name === identifier || key === searchKey) {
-          matchedKey = key;
-          matchedData = PREFECTURES_DATA[key];
-          break;
-        }
-      }
-    }
-
-    if (matchedKey && matchedData) {
-      const englishMeshName = matchedData.en || (matchedKey.charAt(0).toUpperCase() + matchedKey.slice(1));
+    if (matchedData) {
+      const englishMeshName = matchedData.en || (searchKey.charAt(0).toUpperCase() + searchKey.slice(1));
       if (prefectureMeshes[englishMeshName]) {
         const worldPos = new THREE.Vector3();
         prefectureMeshes[englishMeshName].getWorldPosition(worldPos);
@@ -645,13 +651,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (matchedData && matchedData.pos) {
-      return { name: matchedData.name, pos: new THREE.Vector3(matchedData.pos.x, matchedData.pos.y, matchedData.pos.z) };
-    }
-
     return { 
       name: defaultUnknown.name, 
-      pos: new THREE.Vector3(defaultUnknown.pos.x, defaultUnknown.pos.y, defaultUnknown.pos.z) 
+      pos: toVector3(defaultUnknown.pos) 
     };
   }
 
@@ -668,6 +670,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const reg = REGION_DEFINITIONS.find(r => r.id === regionId);
     return reg ? reg.color : 0xffffff;
   }
+
+  const DEBUG_SAMPLE_TEXTS = [
+    'デバッグ：いつも遠くから応援しています！',
+    'デバッグ：全国から温かい声援をお届けします。',
+    'デバッグ：一日も早い復興を心よりお祈り申し上げます。',
+    'デバッグ：みんなで力を合わせて乗り越えましょう！',
+    'デバッグ：少しでも力になれれば幸いです。',
+    'デバッグ：現地で頑張る皆様へエールを送ります！'
+  ];
 
   async function fetchMessages() {
     let rawMessages = [];
@@ -727,8 +738,37 @@ document.addEventListener('DOMContentLoaded', () => {
     filterMessagesByTarget(currentTargetKey);
   }
 
+  function generateRandomDebugMessages(count = 40) {
+    const prefKeys = Object.keys(PREFECTURES_DATA).filter(k => k !== 'debug');
+    prefKeys.push('unknown');
+
+    const dummyList = [];
+
+    for (let i = 0; i < count; i++) {
+      const randomFromKey = prefKeys[Math.floor(Math.random() * prefKeys.length)];
+      const randomText = DEBUG_SAMPLE_TEXTS[Math.floor(Math.random() * DEBUG_SAMPLE_TEXTS.length)];
+
+      dummyList.push({
+        id: `dbg-rand-${i}`,
+        to: 'debug',
+        sourceId: randomFromKey,
+        regionId: getRegionIdBySourceId(randomFromKey),
+        from: getPrefecturalInfo(randomFromKey).name,
+        userId: `@debug_user${i + 1}`,
+        message: randomText
+      });
+    }
+
+    return dummyList;
+  }
+
   function filterMessagesByTarget(targetKey) {
-    currentFilteredMessages = allMessages.filter(item => item.to === targetKey || !item.to);
+    if (targetKey === 'debug') {
+      currentFilteredMessages = generateRandomDebugMessages(30);
+    } else {
+      currentFilteredMessages = allMessages.filter(item => item.to === targetKey || !item.to);
+    }
+
     currentMsgIndex = -1;
 
     if (currentFilteredMessages.length > 0) {
@@ -820,6 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const prefectureMeshes = {};
   const prefPositions = {};
+  let boatModel = null;
   const defaultMaterial = new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.1, metalness: 0.1 });
   const highlightMaterial = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.0, metalness: 0.1 });
   const sharedParticleGeo = new THREE.SphereGeometry(0.2, 16, 16);
@@ -842,7 +883,23 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             });
             updateHighlightedPrefecture(currentTargetKey);
-            resolve();
+
+            loader.load(
+              'models/boat.glb',
+              (boatGltf) => {
+                boatModel = boatGltf.scene;
+                boatModel.position.set(-1.5, 0.75, -0.8);
+                boatModel.scale.set(0.2, 0.2, 0.2);
+                boatModel.rotation.set(0, Math.PI / 4, 0);
+                scene.add(boatModel);
+                resolve();
+              },
+              undefined,
+              (boatErr) => {
+                console.warn('boat.glb の読み込みに失敗しました:', boatErr);
+                resolve();
+              }
+            );
           },
           undefined,
           (error) => {
@@ -883,18 +940,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     10. 3Dアーカールート・動的描画（パフォーマンス最適化版）
+     10. 3Dアーカールート・動的描画（粒子の速度調整）
   ========================================================= */
   let particles = [];
   const lineGroup = new THREE.Group();
   scene.add(lineGroup);
   let interactiveObjects = [];
 
-  const CURVE_DIVISIONS = 40; // 描画処理軽減のため分割数を調整
+  const CURVE_DIVISIONS = 40;
 
-  /**
-   * 既存ジオメトリのメモリ解放を行い、アニメーションに応じたTubeGeometryを更新する
-   */
   function updateTubeMeshGeometry(mesh, curve, startRatio, endRatio) {
     if (startRatio >= endRatio || endRatio <= 0.001) {
       mesh.visible = false;
@@ -942,6 +996,7 @@ document.addEventListener('DOMContentLoaded', () => {
     interactiveObjects = [];
   }
 
+  // 指定した地域(regionId)に存在するメッセージを1件取得する
   function getMessageForRegion(regionId) {
     const matched = currentFilteredMessages.filter(msg => 
       msg.regionId === regionId && msg.sourceId !== currentTargetKey
@@ -952,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createSingleRouteForRegion(regionId) {
     const msg = getMessageForRegion(regionId);
-    if (!msg) return;
+    if (!msg) return; // 該当地域にメッセージがなければ生成しない
 
     const regionColor = getRegionColor(regionId);
 
@@ -992,9 +1047,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const hitMesh = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
     hitMesh.userData = { messageData: msg, regionId: regionId };
     particle.add(hitMesh);
-    // 粒子（hitMesh）のみを判定対象に登録
+    
     interactiveObjects.push(hitMesh);
     scene.add(particle);
+
+    const drawDuration = 0.6 + Math.random() * 0.4;
+    const leaveDuration = 0.6 + Math.random() * 0.4;
+    const particleSpeed = 0.2; 
+    const loopCount = 3 + Math.floor(Math.random() * 2);
+    const moveDuration = (1.0 / particleSpeed) * loopCount;
 
     particles.push({
       mesh: particle,
@@ -1002,85 +1063,32 @@ document.addEventListener('DOMContentLoaded', () => {
       line,
       curve,
       regionId: regionId,
-      progress: 0.0,
-      startProgress: 0.0,
-      endProgress: 0.0,
-      drawSpeed: 1.8,
-      startDelay: Math.random() * 0.5,
-      pendingReset: false,
+      
+      age: 0.0,
+      drawDuration,
+      moveDuration,
+      leaveDuration,
+      particleSpeed,
+      startDelay: Math.random() * 2.0, // タイミングがバラけるようランダム待機
       state: 'WAITING'
     });
   }
 
-  function startRouteIntervalTimer() {
-    if (routeIntervalTimer) clearInterval(routeIntervalTimer);
-    routeIntervalTimer = setInterval(() => {
-      if (particles.length === 0) return;
-      const availableRoutes = particles.filter(p => !p.pendingReset);
-      if (availableRoutes.length > 0) {
-        availableRoutes[Math.floor(Math.random() * availableRoutes.length)].pendingReset = true;
-      }
-    }, 8000);
-  }
-
+  // ★修正箇所：REGION_DEFINITIONS の全要素から1つずつ生成する
   function initArcRoutes() {
     clearArcRoutes();
-    const activeRegionIds = [...new Set(currentFilteredMessages.map(msg => msg.regionId))];
 
-    activeRegionIds.forEach(regionId => {
-      createSingleRouteForRegion(regionId);
+    REGION_DEFINITIONS.forEach(reg => {
+      createSingleRouteForRegion(reg.id);
     });
-
-    if (particles.length > 0) {
-      startRouteIntervalTimer();
-    }
   }
-
-  function resetSingleRoute(p) {
-  const msg = getMessageForRegion(p.regionId);
-  if (!msg) return;
-
-  const currentTarget = getPrefecturalInfo(currentTargetKey).pos;
-  currentTarget.y += ROUTE_CONFIG.Y_OFFSET + ROUTE_CONFIG.TARGET_Y_OFFSET;
-
-  // メッセージ固有の発信地ID（msg.sourceId）から座標を取得
-  const startPos = getPrefecturalInfo(msg.sourceId).pos;
-  startPos.y += ROUTE_CONFIG.Y_OFFSET;
-
-  const controlPos = new THREE.Vector3(
-    (startPos.x + currentTarget.x) / 2,
-    Math.max(startPos.y, currentTarget.y) + ROUTE_CONFIG.ARCH_HEIGHT + Math.random() * ROUTE_CONFIG.ARCH_VARIANCE,
-    (startPos.z + currentTarget.z) / 2
-  );
-
-  p.curve = new THREE.QuadraticBezierCurve3(startPos, controlPos, currentTarget);
-  p.line.userData = { messageData: msg, regionId: p.regionId };
-  p.hitMesh.userData = { messageData: msg, regionId: p.regionId };
-
-  p.progress = 0.0;
-  p.startProgress = 0.0;
-  p.endProgress = 0.0;
-  p.startDelay = 0;
-  p.line.material.opacity = 0.95;
-  p.mesh.visible = false;
-  p.pendingReset = false;
-  p.state = 'DRAWING';
-}
-
-  regionSelect.addEventListener('change', (e) => {
-    currentTargetKey = e.target.value;
-    updateHighlightedPrefecture(currentTargetKey);
-    filterMessagesByTarget(currentTargetKey);
-    updateTargetLinks(currentTargetKey);
-    initArcRoutes();
-  });
 
   /* =========================================================
      11. レイキャスト・メッセージタップ判定
   ========================================================= */
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  raycaster.params.Line.threshold = 0.2; 
+  raycaster.params.Line.threshold = 0.05;
 
   function handlePointerSelect(clientX, clientY) {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -1109,8 +1117,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================================================
      12. アニメーションメインループ
   ========================================================= */
-  const DURATION_SECONDS = 3.5;
-
   function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
@@ -1125,55 +1131,48 @@ document.addEventListener('DOMContentLoaded', () => {
     particles.forEach(p => {
       if (p.state === 'WAITING') {
         p.startDelay -= delta;
-        p.line.visible = false;
-        if (p.startDelay <= 0) p.state = 'DRAWING';
+        if (p.startDelay <= 0) {
+          p.state = 'RUNNING';
+          p.age = 0.0;
+        }
+        return;
+      }
 
-      } else if (p.state === 'DRAWING') {
-        p.mesh.visible = false;
-        p.endProgress += delta * p.drawSpeed;
-        
-        if (p.endProgress >= 1.0) {
-          p.endProgress = 1.0;
-          p.state = 'MOVING';
-          p.progress = 0.0;
-          p.mesh.position.copy(p.curve.getPoint(0.0));
+      if (p.state === 'RUNNING') {
+        p.age += delta;
+
+        const tDraw = p.drawDuration;
+        const tMove = tDraw + p.moveDuration;
+        const tLeave = tMove + p.leaveDuration;
+
+        if (p.age < tDraw) {
+          const ratio = p.age / tDraw;
+          updateTubeMeshGeometry(p.line, p.curve, 0.0, ratio);
+          p.mesh.visible = false;
+        } 
+        else if (p.age < tMove) {
+          const singleLoopProgress = ((p.age - tDraw) * p.particleSpeed) % 1.0;
+          
+          p.mesh.position.copy(p.curve.getPoint(singleLoopProgress));
           p.mesh.visible = true;
-        }
 
-        updateTubeMeshGeometry(p.line, p.curve, 0.0, p.endProgress);
-
-      } else if (p.state === 'MOVING') {
-        p.progress += delta / DURATION_SECONDS;
-        if (p.progress >= 1.0) {
-          p.progress = 1.0;
-          if (p.pendingReset) {
-            p.state = 'LEAVING';
-            p.startProgress = 0.0;
+          if (singleLoopProgress < 0.1) {
+            p.mesh.material.opacity = singleLoopProgress / 0.1;
+          } else if (singleLoopProgress > 0.8) {
+            p.mesh.material.opacity = (1.0 - singleLoopProgress) / 0.2;
           } else {
-            p.progress = 0.0;
+            p.mesh.material.opacity = 1.0;
           }
-        }
-        p.mesh.position.copy(p.curve.getPoint(p.progress));
 
-        if (p.progress < 0.1) {
-          p.mesh.material.opacity = p.progress / 0.1;
-        } else if (p.progress > 0.7) {
-          p.mesh.material.opacity = (1.0 - p.progress) / 0.3;
-        } else {
-          p.mesh.material.opacity = 1.0;
-        }
-
-        updateTubeMeshGeometry(p.line, p.curve, 0.0, 1.0);
-
-      } else if (p.state === 'LEAVING') {
-        p.mesh.visible = false;
-        p.startProgress += delta * p.drawSpeed;
-
-        if (p.startProgress >= 1.0) {
-          p.startProgress = 1.0;
-          resetSingleRoute(p);
-        } else {
-          updateTubeMeshGeometry(p.line, p.curve, p.startProgress, 1.0);
+          updateTubeMeshGeometry(p.line, p.curve, 0.0, 1.0);
+        } 
+        else if (p.age < tLeave) {
+          p.mesh.visible = false;
+          const leaveRatio = (p.age - tMove) / p.leaveDuration;
+          updateTubeMeshGeometry(p.line, p.curve, leaveRatio, 1.0);
+        } 
+        else {
+          resetRouteLifetime(p);
         }
       }
     });
@@ -1214,12 +1213,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   });
 
-  // =========================================================
-  // 広告の初期化（未処理の枠のみ safe に push）
-  // =========================================================
   const adElements = document.querySelectorAll('.adsbygoogle');
   adElements.forEach((adEl) => {
-    // AdSenseによって処理済みの属性(data-adsbygoogle-status)が付いていない場合のみ実行
     if (!adEl.getAttribute('data-adsbygoogle-status')) {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
